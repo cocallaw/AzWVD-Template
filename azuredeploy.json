@@ -14,6 +14,14 @@
         "description": "Admin password for VMs"
       }
     },
+    "vmNameBaseName": {
+      "type": "string",
+      "maxLength": 10,
+      "minLength": 3,
+      "metadata": {
+        "description": "Base VM that will concated/incrimented for resources"
+      }
+    },
     "numberOfInstances": {
       "type": "int",
       "defaultValue": 2,
@@ -35,6 +43,24 @@
         "description": "OS Platform for the VM"
       }
     },
+    "existingVNetRG": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of Existing VNet Resource Group"
+      }
+    },
+    "existingVNetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of Existing VNet"
+      }
+    },
+    "existingSubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of Existing Subnet"
+      }
+    },
     "location": {
       "type": "string",
       "defaultValue": "[resourceGroup().location]",
@@ -44,11 +70,7 @@
     }
   },
   "variables": {
-    "virtualNetworkName": "myVNET",
-    "addressPrefix": "10.0.0.0/16",
-    "subnet1Name": "Subnet-1",
-    "subnet1Prefix": "10.0.0.0/24",
-    "subnet1Ref": "[resourceId('Microsoft.Network/virtualNetworks/subnets',variables('virtualNetworkName'),variables('subnet1Name'))]",
+    "subnetRef": "[resourceId(parameters('existingVNetRG'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVNetName'),parameters('existingSubnetName'))]",
     "availabilitySetName": "myAvSet",
     "Windows 10 Multisession with Office 365 ProPlus": {
       "publisher": "MicrosoftWindowsDesktop",
@@ -83,27 +105,6 @@
       }
     },
     {
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('virtualNetworkName')]",
-      "apiVersion": "2016-03-30",
-      "location": "[parameters('location')]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('addressPrefix')]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('subnet1Name')]",
-            "properties": {
-              "addressPrefix": "[variables('subnet1Prefix')]"
-            }
-          }
-        ]
-      }
-    },
-    {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat('nic', copyindex())]",
       "apiVersion": "2016-03-30",
@@ -113,7 +114,7 @@
         "count": "[parameters('numberOfInstances')]"
       },
       "dependsOn": [
-        "[variables('virtualNetworkName')]"
+        "[resourceId(parameters('existingVNetRG'),'Microsoft.Network/virtualNetworks',parameters('existingVNetName'))]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -122,7 +123,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
-                "id": "[variables('subnet1Ref')]"
+                "id": "[variables('subnetRef')]"
               }
             }
           }
@@ -131,7 +132,7 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat('myvm', copyIndex())]",
+      "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
       "apiVersion": "2016-04-30-preview",
       "location": "[parameters('location')]",
       "copy": {
@@ -149,7 +150,7 @@
           "vmSize": "Standard_D1_v2"
         },
         "osProfile": {
-          "computerName": "[concat('vm', copyIndex())]",
+          "computerName": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]"
         },
