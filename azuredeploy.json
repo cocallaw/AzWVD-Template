@@ -5,7 +5,7 @@
     "adminUsername": {
       "type": "string",
       "metadata": {
-        "description": "Admin username for VM"
+        "description": "Admin username for VMs"
       }
     },
     "adminPassword": {
@@ -18,17 +18,18 @@
       "type": "int",
       "defaultValue": 2,
       "minValue": 2,
-      "maxValue": 5,
+      "maxValue": 10,
       "metadata": {
         "description": "Number of VMs to deploy, limit 5 since this sample is using a single storage account"
       }
     },
     "OS": {
       "type": "string",
-      "defaultValue": "Ubuntu",
+      "defaultValue": "Windows Server 2016",
       "allowedValues": [
-        "Ubuntu",
-        "Windows"
+        "Windows 10 Multisession with Office 365 ProPlus",
+        "Windows 10 Multisession",
+        "Windows Server 2016"
       ],
       "metadata": {
         "description": "OS Platform for the VM"
@@ -49,14 +50,20 @@
     "subnet1Prefix": "10.0.0.0/24",
     "subnet1Ref": "[resourceId('Microsoft.Network/virtualNetworks/subnets',variables('virtualNetworkName'),variables('subnet1Name'))]",
     "availabilitySetName": "myAvSet",
-    "Ubuntu": {
-      "publisher": "Canonical",
-      "offer": "UbuntuServer",
-      "sku": "16.04.0-LTS",
+    "Windows 10 Multisession with Office 365 ProPlus": {
+      "publisher": "MicrosoftWindowsDesktop",
+      "offer": "office-365",
+      "sku": "1903-evd-o365pp",
       "version": "latest"
     },
-    "Windows": {
-      "publisher": "MicrosoftWindowsServer",
+    "Windows 10 Multisession": {
+      "publisher": "MicrosoftWindowsDesktop",
+      "offer": "Windows-10",
+      "sku": "19h1-evd",
+      "version": "latest"
+    },
+    "Windows Server 2016": {
+      "publisher": "MicrosoftwindowsServer",
       "offer": "WindowsServer",
       "sku": "2016-Datacenter",
       "version": "latest"
