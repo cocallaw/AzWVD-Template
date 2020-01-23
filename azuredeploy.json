@@ -43,13 +43,13 @@
         "description": "OS Platform for the VM"
       }
     },
-    "existingVNetRG": {
+    "existingVnetRG": {
       "type": "string",
       "metadata": {
         "description": "Name of Existing VNet Resource Group"
       }
     },
-    "existingVNetName": {
+    "existingVnetName": {
       "type": "string",
       "metadata": {
         "description": "Name of Existing VNet"
@@ -70,7 +70,7 @@
     }
   },
   "variables": {
-    "subnetRef": "[resourceId(parameters('existingVNetRG'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVNetName'),parameters('existingSubnetName'))]",
+    "subnetRef": "[resourceId(parameters('existingVnetRG'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVnetName'),parameters('existingSubnetName'))]",
     "availabilitySetName": "[concat(parameters('vmNameBaseName'),'-avs')]",
     "Windows 10 Multisession with Office 365 ProPlus": {
       "publisher": "MicrosoftWindowsDesktop",
@@ -113,9 +113,7 @@
         "name": "nicLoop",
         "count": "[parameters('numberOfInstances')]"
       },
-      "dependsOn": [
-        "[resourceId(parameters('existingVNetRG'),'Microsoft.Network/virtualNetworks',parameters('existingVNetName'))]"
-      ],
+      "dependsOn": [],
       "properties": {
         "ipConfigurations": [
           {
