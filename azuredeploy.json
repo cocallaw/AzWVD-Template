@@ -71,7 +71,7 @@
   },
   "variables": {
     "subnetRef": "[resourceId(parameters('existingVNetRG'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVNetName'),parameters('existingSubnetName'))]",
-    "availabilitySetName": "myAvSet",
+    "availabilitySetName": "[concat(parameters('vmNameBaseName'),'-avs')]",
     "Windows 10 Multisession with Office 365 ProPlus": {
       "publisher": "MicrosoftWindowsDesktop",
       "offer": "office-365",
@@ -106,7 +106,7 @@
     },
     {
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat('nic', copyindex())]",
+      "name": "[concat(parameters('vmNameBaseName'),'-nic-', copyindex())]",
       "apiVersion": "2016-03-30",
       "location": "[parameters('location')]",
       "copy": {
@@ -163,7 +163,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat('nic', copyindex()))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmNameBaseName'),'-nic-', copyindex()))]"
             }
           ]
         }
