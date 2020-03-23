@@ -39,9 +39,9 @@
         "description": "Number of VMs to deploy, limit 5 since this sample is using a single storage account"
       }
     },
-    "HostImageType":{
-      "type":"string",
-      "allowedValues":[
+    "HostImageType": {
+      "type": "string",
+      "allowedValues": [
         "AzureGallery",
         "CustomImage"
       ]
@@ -114,6 +114,12 @@
       "defaultValue": 3,
       "metadata": {
         "description": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"
+      }
+    },
+    "rdshIsWindowsServer": {
+      "type": "bool",
+      "metadata": {
+        "description": "If the VM is a Windows Server SKU (2016, 2012R2, etc.), enter true. If the VM is a Windows client SKU (Windows 10, Windows 7, etc.)."
       }
     },
     "baseUrl": {
@@ -229,7 +235,7 @@
           "ouPath": "[parameters('ouPath')]",
           "user": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]",
           "restart": "true",
-          "options": "3"
+          "options": "[parameters('domainJoinOptions')]"
         },
         "protectedSettings": {
           "password": "[parameters('domainPassword')]"
