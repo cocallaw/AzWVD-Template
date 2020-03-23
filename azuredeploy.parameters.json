@@ -17,6 +17,12 @@
     "OS": {
       "value": "Windows Server 2016"
     },
+    "AVSFault": {
+      "value": 2
+    },
+    "AVSUpdate": {
+      "value": 2
+    },
     "existingVNetRG": {
       "value": "Windows Server 2016"
     },
