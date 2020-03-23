@@ -31,4 +31,4 @@ New-NetFirewallRule -DisplayName "Firewall-GW-RDSH-TCP-In" -Direction Inbound -L
 
 #Add RDS Feature 
 $vmname = $env:computername
-Install-WindowsFeature -Name RDS-RD-Server -computerName $vmname
+Install-WindowsFeature -Name RDS-RD-Server -computerName $vmname -Restart
