@@ -105,7 +105,8 @@
         "storageProfile": {
           "imageReference": "[variables('imageReference')]",
           "osDisk": {
-            "createOption": "FromImage"
+            "createOption": "FromImage",
+            "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex(),'-osdisk')]"
           }
         },
         "networkProfile": {
