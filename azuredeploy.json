@@ -22,6 +22,14 @@
         "description": "Base VM that will concated/incrimented for resources"
       }
     },
+    "vmHostSize": {
+      "type" : "string",
+      "allowedValues": [
+       "Standard_F2s",
+       "Standard_D1_v2",
+       "Standard_D2s_v3"
+      ]
+    },
     "numberOfInstances": {
       "type": "int",
       "defaultValue": 2,
@@ -145,7 +153,7 @@
           "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
         },
         "hardwareProfile": {
-          "vmSize": "Standard_D1_v2"
+          "vmSize": "[parameters('VMHostSize')]"
         },
         "osProfile": {
           "computerName": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
