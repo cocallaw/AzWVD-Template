@@ -90,7 +90,7 @@
         "description": "The FQDN of the AD domain"
       }
     },
-    "domainUsername": {
+    "domainUserFQDN": {
       "type": "string",
       "metadata": {
         "description": "Username of the account on the domain"
@@ -139,6 +139,8 @@
     }
   },
   "variables": {
+    "existingDomainUsername": "[first(split(parameters('domainUserFQDN'), '@'))]",
+    "existingDomainName": "[last(split(parameters('domainUserFQDN'), '@'))]",
     "subnetRef": "[resourceId(parameters('existingVnetRG'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVnetName'),parameters('existingSubnetName'))]",
     "availabilitySetName": "[concat(parameters('vmNameBaseName'),'-avs')]",
     "vmTemplateName": "[if( equals(parameters('HostImageType'), 'AzureGallery'), 'galleryimage', 'customimage')]",
@@ -177,7 +179,7 @@
     },
     {
       "apiVersion": "2017-05-10",
-      "name": "vmCreation-linkedTemplate",
+      "name": "vmHost-CreationLinked",
       "type": "Microsoft.Resources/deployments",
       "properties": {
         "mode": "Incremental",
@@ -220,7 +222,7 @@
       "condition": "[not(parameters('rdshIsWindowsServer'))]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "virtualMachineLoop"
+        "vmHost-CreationLinked"
       ],
       "copy": {
         "name": "rdsh-domain-join-loop",
@@ -234,12 +236,48 @@
         "settings": {
           "name": "[parameters('domainToJoin')]",
           "ouPath": "[parameters('ouPath')]",
-          "user": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]",
+          "user": "[concat(parameters('domainToJoin'), '\\', variables('existingDomainUsername'))]",
           "restart": "true",
           "options": "[parameters('domainJoinOptions')]"
         },
         "protectedSettings": {
           "password": "[parameters('domainPassword')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'dscextension')]",
+      "location": "[resourceGroup().location]",
+      "condition": "[parameters('rdshIsWindowsServer')]",
+      "dependsOn": [
+        "vmHost-CreationLinked"
+      ],
+      "copy": {
+        "name": "rdsh-dsc-loop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.11",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "ModulesUrl": "[concat(parameters('baseUrl'),'/DSC/Configuration.zip')]",
+          "ConfigurationFunction": "Configuration.ps1\\SessionHost",
+          "Properties": {
+            "DomainName": "[parameters('domainToJoin')]",
+            "AdminCreds": {
+              "UserName": "[variables('existingDomainUsername')]",
+              "Password": "PrivateSettingsRef:AdminPassword"
+            }
+          }
+        },
+        "protectedSettings": {
+          "Items": {
+            "AdminPassword": "[parameters('domainPassword')]"
+          }
         }
       }
     }
