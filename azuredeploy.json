@@ -34,7 +34,7 @@
       "type": "int",
       "defaultValue": 2,
       "minValue": 2,
-      "maxValue": 10,
+      "maxValue": 50,
       "metadata": {
         "description": "Number of VMs to deploy, limit 5 since this sample is using a single storage account"
       }
@@ -145,6 +145,7 @@
     "availabilitySetName": "[concat(parameters('vmNameBaseName'),'-avs')]",
     "vmTemplateName": "[if( equals(parameters('HostImageType'), 'AzureGallery'), 'galleryimage', 'customimage')]",
     "vmTemplateUri": "[concat(parameters('baseUrl'),'/linkedtemplates/',variables('vmTemplateName'),'.json')]",
+    "winsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/winsrv.ps1",
     "Windows 10 Multisession with Office 365 ProPlus": {
       "publisher": "MicrosoftWindowsDesktop",
       "offer": "office-365",
@@ -222,7 +223,6 @@
       "apiVersion": "2018-10-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'joindomain')]",
-      "condition": "[not(parameters('rdshIsWindowsServer'))]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "vmHost-CreationLinked"
@@ -251,36 +251,31 @@
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'dscextension')]",
-      "location": "[resourceGroup().location]",
+      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/','rdAgent')]",
       "condition": "[parameters('rdshIsWindowsServer')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
-        "vmHost-CreationLinked"
-      ],
+        "rdsh-domain-join-loop"
+            ],
       "copy": {
-        "name": "rdsh-dsc-loop",
+        "name": "winsrv-prep-loop",
         "count": "[parameters('numberOfInstances')]"
       },
+      "tags": {
+        "displayName": "script"
+      },
       "properties": {
-        "publisher": "Microsoft.Powershell",
-        "type": "DSC",
-        "typeHandlerVersion": "2.11",
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.8",
         "autoUpgradeMinorVersion": true,
         "settings": {
-          "ModulesUrl": "[concat(parameters('baseUrl'),'/DSC/Configuration.zip')]",
-          "ConfigurationFunction": "Configuration.ps1\\SessionHost",
-          "Properties": {
-            "DomainName": "[parameters('domainToJoin')]",
-            "AdminCreds": {
-              "UserName": "[variables('existingDomainUsername')]",
-              "Password": "PrivateSettingsRef:AdminPassword"
-            }
-          }
+          "fileUris": [
+            "[variables('winsrvscriptURI')]"
+          ]
         },
         "protectedSettings": {
-          "Items": {
-            "AdminPassword": "[parameters('domainPassword')]"
-          }
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File winsrv.ps1')]"
         }
       }
     }

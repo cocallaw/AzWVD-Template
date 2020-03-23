@@ -26,7 +26,7 @@ foreach($k in $key){
                 Set-ItemProperty -path "Registry::$k" -Name "EnableTraceToFile" -Type "DWord" -Value "1"
         }
 
-#Registry EnableTraceToFile
+#Registry Timezone Redirect
 $key =  "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server"
 foreach($k in $key){
                 If  ( -Not ( Test-Path "Registry::$k")){New-Item -Path "Registry::$k" -ItemType RegistryKey -Force}
