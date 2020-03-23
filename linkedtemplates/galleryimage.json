@@ -1,24 +1,59 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-      "vmNameBaseName": {
-        "type": "string"
-      },
-      "numberOfInstances": {
-        "type": "int"
-        },
-      "location": {
-        "type": "string",
-        "defaultValue": "[resourceGroup().location]",
-        "metadata": {
-          "description": "Location for all resources."
-        }
-      }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string"
     },
-    "variables": { },
-    "resources": [
-          {
+    "adminPassword": {
+      "type": "securestring"
+    },
+    "vmNameBaseName": {
+      "type": "string"
+    },
+    "vmHostSize": {
+      "type": "string"
+    },
+    "numberOfInstances": {
+      "type": "int"
+    },
+    "OS": {
+      "type": "string"
+    },
+    "subnetRef": {
+      "type": "string"
+    },
+    "availabilitySetName": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    }
+  },
+  "variables": {
+    "Windows 10 Multisession with Office 365 ProPlus": {
+      "publisher": "MicrosoftWindowsDesktop",
+      "offer": "office-365",
+      "sku": "1903-evd-o365pp",
+      "version": "latest"
+    },
+    "Windows 10 Multisession": {
+      "publisher": "MicrosoftWindowsDesktop",
+      "offer": "Windows-10",
+      "sku": "19h1-evd",
+      "version": "latest"
+    },
+    "Windows Server 2016": {
+      "publisher": "MicrosoftwindowsServer",
+      "offer": "WindowsServer",
+      "sku": "2016-Datacenter",
+      "version": "latest"
+    },
+    "imageReference": "[variables(parameters('OS'))]"
+  },
+  "resources": [
+    {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(parameters('vmNameBaseName'),'-nic-', copyindex())]",
       "apiVersion": "2016-03-30",
@@ -27,7 +62,8 @@
         "name": "nicLoop",
         "count": "[parameters('numberOfInstances')]"
       },
-      "dependsOn": [],
+      "dependsOn": [
+      ],
       "properties": {
         "ipConfigurations": [
           {
@@ -35,7 +71,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
-                "id": "[parameters()('subnetRef')]"
+                "id": "[parameters('subnetRef')]"
               }
             }
           }
@@ -56,7 +92,7 @@
       ],
       "properties": {
         "availabilitySet": {
-          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
         },
         "hardwareProfile": {
           "vmSize": "[parameters('VMHostSize')]"
@@ -80,8 +116,8 @@
           ]
         }
       }
-    },
-    ],
-    "outputs": {
     }
+  ],
+  "outputs": {
   }
+}
