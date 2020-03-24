@@ -138,6 +138,56 @@
         "description": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"
       }
     },
+    "ExistingTenantGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the tenant group in the WVD deployment"
+      }
+    },
+    "ExistingTenantName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Existing WVD Tenant"
+      }
+    },
+    "HostPoolName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of existing WVD Hostpool"
+      }
+    },
+    "TenantAdminUpnOrApplicationId": {
+      "type": "string",
+      "metadata": {
+        "description": "The template will fail if you enter a user account that requires MFA or an application that is secured by a certificate. The UPN or ApplicationId must be an RDS Owner in the WVD Tenant to create the hostpool or an RDS Owner of the host pool to provision the host pool with additional VMs."
+      }
+    },
+    "TenantAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password that corresponds to the tenant admin UPN."
+      }
+    },
+    "rdshIs1809OrLater": {
+      "type": "bool",
+      "metadata": {
+        "description": "If the VM is Windows Server 2019+ or Windows 10 1809+, enter true. Else, enter false."
+      }
+    },
+    "isServicePrincipal": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "The boolean value indicating if the credentials are for a service principal."
+      }
+    },
+    "AadTenantId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "[Required when isServicePrincipal = True] This value identifies the Azure AD tenant of the service principal."
+      }
+    },
     "baseUrl": {
       "type": "string",
       "metadata": {
@@ -161,6 +211,10 @@
     "availabilitySetName": "[concat(parameters('vmNameBaseName'),'-avs')]",
     "vmTemplateName": "[if( equals(parameters('HostImageType'), 'AzureGallery'), 'galleryimage', 'customimage')]",
     "vmTemplateUri": "[concat(parameters('baseUrl'),'/linkedtemplates/',variables('vmTemplateName'),'.json')]",
+    "HostPoolFriendlyName": "Hostpool",
+    "HostPoolDescription": "Created through ARM template",
+    "RegistrationExpirationHours": "48",
+    "deployAgentURI": "[concat(parameters('baseUrl'),'/Scripts/WVD/DeployAgent.zip')]",
     "winsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/winsrv.ps1",
     "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Script.ps1",
     "RDBrokerURL": "https://rdbroker.wvd.microsoft.com",
@@ -336,7 +390,7 @@
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File Script.ps1',' -RDBrokerURL \"', parameters('RDBrokerURL'), '\"', ' ', ' -definedTenantGroupName \"', parameters('ExistingTenantGroupName'), '\"',' ',' -TenantName \"', parameters('ExistingTenantName'), '\"',' ', ' -HostPoolName \"', parameters('HostPoolName'), '\"',' ', ' -FriendlyName \"', variables('HostPoolFriendlyName'), '\"',' ', ' -Description \"', variables('HostPoolDescription'), '\"',' ', ' -Hours \"', variables('RegistrationExpirationHours'), '\"',' ', ' -TenantAdminUPN \"', parameters('TenantAdminUpnOrApplicationId'), '\"',' ', ' -TenantAdminPassword \"', parameters('TenantAdminPassword'), '\"',' ',' -localAdminUsername \"', variables('existingDomainUsername'), '\"',' ', ' -localAdminpassword \"', parameters('domainPassword'), '\"',' ', ' -Fileuri \"', variables('deployAgentURI'), '\"', ' ', ' -rdshIs1809OrLater \"', parameters('rdshIs1809OrLater'), '\"', ' ', ' -isServicePrincipal \"', parameters('isServicePrincipal'), '\"', ' ', ' -AadTenantId \"', parameters('AadTenantId'), '\"')]"
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File Script.ps1',' -RDBrokerURL \"', variables('RDBrokerURL'), '\"', ' ', ' -definedTenantGroupName \"', parameters('ExistingTenantGroupName'), '\"',' ',' -TenantName \"', parameters('ExistingTenantName'), '\"',' ', ' -HostPoolName \"', parameters('HostPoolName'), '\"',' ', ' -FriendlyName \"', variables('HostPoolFriendlyName'), '\"',' ', ' -Description \"', variables('HostPoolDescription'), '\"',' ', ' -Hours \"', variables('RegistrationExpirationHours'), '\"',' ', ' -TenantAdminUPN \"', parameters('TenantAdminUpnOrApplicationId'), '\"',' ', ' -TenantAdminPassword \"', parameters('TenantAdminPassword'), '\"',' ',' -localAdminUsername \"', variables('existingDomainUsername'), '\"',' ', ' -localAdminpassword \"', parameters('domainPassword'), '\"',' ', ' -Fileuri \"', variables('deployAgentURI'), '\"', ' ', ' -rdshIs1809OrLater \"', parameters('rdshIs1809OrLater'), '\"', ' ', ' -isServicePrincipal \"', parameters('isServicePrincipal'), '\"', ' ', ' -AadTenantId \"', parameters('AadTenantId'), '\"')]"
         }
       }
     }
