@@ -20,6 +20,12 @@
     "OS": {
       "type": "string"
     },
+    "CustomImageSourceName": {
+      "type": "string"
+    },
+    "CustomImageSourceResourceGroup": {
+      "type": "string"
+    },
     "subnetRef": {
       "type": "string"
     },

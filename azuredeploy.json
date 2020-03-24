@@ -64,6 +64,20 @@
         "description": "If the VM is a Windows Server SKU (2016, 2012R2, etc.), enter true. If the VM is a Windows client SKU (Windows 10, Windows 7, etc.)."
       }
     },
+    "CustomImageSourceName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "[Required when HostImageType = CustomImage] Name of the managed disk."
+      }
+    },
+    "CustomImageSourceResourceGroup": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "[Required when HostImageType = CustomImage] Resource group name for the managed disk, if you choose to provide one."
+      }
+    },
     "AVSFault": {
       "type": "int",
       "defaultValue": 2
@@ -207,6 +221,12 @@
           "OS": {
             "value": "[parameters('OS')]"
           },
+          "CustomImageSourceName": {
+            "value": "[parameters('CustomImageSourceName')]"
+          },
+          "CustomImageSourceResourceGroup": {
+            "value": "[parameters('CustomImageSourceResourceGroup')]"
+          },
           "subnetRef": {
             "value": "[variables('subnetRef')]"
           },
@@ -256,7 +276,7 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "rdsh-domain-join-loop"
-            ],
+      ],
       "copy": {
         "name": "winsrv-prep-loop",
         "count": "[parameters('numberOfInstances')]"

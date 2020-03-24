@@ -1,12 +1,114 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string"
     },
-    "variables": {
+    "adminPassword": {
+      "type": "securestring"
     },
-    "resources": [
-    ],
-    "outputs": {
+    "vmNameBaseName": {
+      "type": "string"
+    },
+    "vmHostSize": {
+      "type": "string"
+    },
+    "numberOfInstances": {
+      "type": "int"
+    },
+    "OS": {
+      "type": "string"
+    },
+    "CustomImageSourceName": {
+      "type": "string"
+    },
+    "CustomImageSourceResourceGroup": {
+      "type": "string"
+    },
+    "subnetRef": {
+      "type": "string"
+    },
+    "availabilitySetName": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
     }
+  },
+  "variables": {
+    "imageResourceId": "[resourceId(parameters('CustomImageSourceResourceGroup'), 'Microsoft.Compute/images', parameters('CustomImageSourceName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(parameters('vmNameBaseName'),'-nic-', copyindex())]",
+      "apiVersion": "2016-03-30",
+      "location": "[parameters('location')]",
+      "copy": {
+        "name": "nicLoop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "dependsOn": [
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('subnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
+      "apiVersion": "2016-04-30-preview",
+      "location": "[parameters('location')]",
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "dependsOn": [
+        "nicLoop"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('VMHostSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "id": "[variables('imageResourceId')]"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex(),'-osdisk')]"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmNameBaseName'),'-nic-', copyindex()))]"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "outputs": {
   }
+}
