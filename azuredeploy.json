@@ -26,6 +26,8 @@
       "type": "string",
       "allowedValues": [
         "Standard_F2s",
+        "Standard_F4s",
+        "Standard_F8s",
         "Standard_D1_v2",
         "Standard_D2s_v3"
       ]
@@ -161,6 +163,7 @@
     "vmTemplateUri": "[concat(parameters('baseUrl'),'/linkedtemplates/',variables('vmTemplateName'),'.json')]",
     "winsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/winsrv.ps1",
     "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Script.ps1",
+    "RDBrokerURL": "https://rdbroker.wvd.microsoft.com",
     "Windows 10 Multisession with Office 365 ProPlus": {
       "publisher": "MicrosoftWindowsDesktop",
       "offer": "office-365",
@@ -313,7 +316,7 @@
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "rdsh-domain-join-loop",
-        "winsrv-prep-loop"
+        "rdsh-dsc-loop"
       ],
       "copy": {
         "name": "rdsh-enable-loop",
