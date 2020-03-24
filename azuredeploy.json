@@ -160,6 +160,7 @@
     "vmTemplateName": "[if( equals(parameters('HostImageType'), 'AzureGallery'), 'galleryimage', 'customimage')]",
     "vmTemplateUri": "[concat(parameters('baseUrl'),'/linkedtemplates/',variables('vmTemplateName'),'.json')]",
     "winsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/winsrv.ps1",
+    "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Script.ps1",
     "Windows 10 Multisession with Office 365 ProPlus": {
       "publisher": "MicrosoftWindowsDesktop",
       "offer": "office-365",
@@ -243,6 +244,7 @@
       "apiVersion": "2018-10-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'joindomain')]",
+      "condition": "[not(parameters('rdshIsWindowsServer'))]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "vmHost-CreationLinked"
@@ -271,14 +273,50 @@
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/','rdAgent')]",
-      "condition": "[parameters('rdshIsWindowsServer')]",
+      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'dscextension')]",
       "location": "[resourceGroup().location]",
+      "condition": "[parameters('rdshIsWindowsServer')]",
       "dependsOn": [
-        "rdsh-domain-join-loop"
+        "vmHost-CreationLinked"
       ],
       "copy": {
-        "name": "winsrv-prep-loop",
+        "name": "rdsh-dsc-loop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.11",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "ModulesUrl": "[concat(parameters('baseUrl'),'/DSC/Configuration.zip')]",
+          "ConfigurationFunction": "Configuration.ps1\\SessionHost",
+          "Properties": {
+            "DomainName": "[parameters('domainToJoin')]",
+            "AdminCreds": {
+              "UserName": "[variables('existingDomainUsername')]",
+              "Password": "PrivateSettingsRef:AdminPassword"
+            }
+          }
+        },
+        "protectedSettings": {
+          "Items": {
+            "AdminPassword": "[parameters('domainPassword')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/','rdAgent')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "rdsh-domain-join-loop",
+        "winsrv-prep-loop"
+      ],
+      "copy": {
+        "name": "rdsh-enable-loop",
         "count": "[parameters('numberOfInstances')]"
       },
       "tags": {
@@ -291,11 +329,11 @@
         "autoUpgradeMinorVersion": true,
         "settings": {
           "fileUris": [
-            "[variables('winsrvscriptURI')]"
+            "[variables('wvdsrvscriptURI')]"
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File winsrv.ps1')]"
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File Script.ps1',' -RDBrokerURL \"', parameters('RDBrokerURL'), '\"', ' ', ' -definedTenantGroupName \"', parameters('ExistingTenantGroupName'), '\"',' ',' -TenantName \"', parameters('ExistingTenantName'), '\"',' ', ' -HostPoolName \"', parameters('HostPoolName'), '\"',' ', ' -FriendlyName \"', variables('HostPoolFriendlyName'), '\"',' ', ' -Description \"', variables('HostPoolDescription'), '\"',' ', ' -Hours \"', variables('RegistrationExpirationHours'), '\"',' ', ' -TenantAdminUPN \"', parameters('TenantAdminUpnOrApplicationId'), '\"',' ', ' -TenantAdminPassword \"', parameters('TenantAdminPassword'), '\"',' ',' -localAdminUsername \"', variables('existingDomainUsername'), '\"',' ', ' -localAdminpassword \"', parameters('domainPassword'), '\"',' ', ' -Fileuri \"', variables('deployAgentURI'), '\"', ' ', ' -rdshIs1809OrLater \"', parameters('rdshIs1809OrLater'), '\"', ' ', ' -isServicePrincipal \"', parameters('isServicePrincipal'), '\"', ' ', ' -AadTenantId \"', parameters('AadTenantId'), '\"')]"
         }
       }
     }
