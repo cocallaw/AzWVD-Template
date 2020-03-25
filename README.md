@@ -13,4 +13,12 @@
 Parameter | Required | Description
 --- | --- | ---
 Admin Username | Yes | VM Local Admin Username
-Admin Password | 2 | VM Local Admin Password
+Admin Password | Yes | VM Local Admin Password
+VM Base Name | Yes | 
+VM Host Size | Yes | 
+Number of Instances | Yes |
+Host Image Type | Yes | 
+OS | Yes |
+RDSH Is Windows Server | | 
+
+
