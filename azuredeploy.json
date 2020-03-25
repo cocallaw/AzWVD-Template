@@ -197,7 +197,7 @@
       },
       "defaultValue": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master"
     },
-    "HostPoollocation": {
+    "HostPoolLocation": {
       "type": "string",
       "defaultValue": "[resourceGroup().location]",
       "metadata": {
