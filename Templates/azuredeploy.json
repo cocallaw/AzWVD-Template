@@ -217,7 +217,7 @@
     "subnetRef": "[resourceId(parameters('existingVnetRG'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVnetName'),parameters('existingSubnetName'))]",
     "availabilitySetName": "[concat(parameters('vmNameBaseName'),'-avs')]",
     "vmTemplateName": "[if( equals(parameters('HostImageType'), 'AzureGallery'), 'galleryimage', 'customimage')]",
-    "vmTemplateUri": "[concat(parameters('baseUrl'),'/linkedtemplates/',variables('vmTemplateName'),'.json')]",
+    "vmTemplateUri": "[concat(parameters('baseUrl'),'/Templates/linkedtemplates/',variables('vmTemplateName'),'.json')]",
     "HostPoolFriendlyName": "Hostpool",
     "HostPoolDescription": "Created through ARM template",
     "RegistrationExpirationHours": "48",
