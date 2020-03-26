@@ -127,7 +127,6 @@
     },
     "ouPath": {
       "type": "string",
-      "defaultValue": "",
       "metadata": {
         "description": "Specifies an organizational unit (OU) for the domain account. Enter the full distinguished name of the OU in quotation marks. Example: \"OU=testOU; DC=domain; DC=Domain; DC=com\""
       }
@@ -184,7 +183,6 @@
     },
     "AadTenantId": {
       "type": "string",
-      "defaultValue": "",
       "metadata": {
         "description": "[Required when isServicePrincipal = True] This value identifies the Azure AD tenant of the service principal."
       }
