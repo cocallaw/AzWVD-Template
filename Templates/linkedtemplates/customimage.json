@@ -37,7 +37,8 @@
     }
   },
   "variables": {
-    "imageResourceId": "[resourceId(parameters('CustomImageSourceResourceGroup'), 'Microsoft.Compute/images', parameters('CustomImageSourceName'))]"
+    "imageResourceId": "[resourceId(parameters('CustomImageSourceResourceGroup'), 'Microsoft.Compute/images', parameters('CustomImageSourceName'))]",
+    "imgbetatestID": "/subscriptions/0d7a1f3d-9742-4251-b3fc-33a9c25d5270/resourceGroups/richti-demo-custom-img/providers/Microsoft.Compute/images/richti-image-corey-gen2"
   },
   "resources": [
     {
@@ -91,7 +92,7 @@
         },
         "storageProfile": {
           "imageReference": {
-            "id": "[variables('imageResourceId')]"
+            "id": "[variables('imgbetatestID')]"
           },
           "osDisk": {
             "createOption": "FromImage",
