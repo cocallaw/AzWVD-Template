@@ -305,7 +305,7 @@
       ]
     },
     {
-      "apiVersion": "2018-10-01",
+      "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'joindomain')]",
       "condition": "[not(parameters('rdshIsWindowsServer'))]",
@@ -335,7 +335,7 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'dscextension')]",
       "location": "[parameters('HostPoollocation')]",
@@ -371,7 +371,7 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/','rdAgent')]",
       "location": "[parameters('HostPoollocation')]",
