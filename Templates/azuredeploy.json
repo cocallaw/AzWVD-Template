@@ -247,7 +247,7 @@
     {
       "type": "Microsoft.Compute/availabilitySets",
       "name": "[variables('availabilitySetName')]",
-      "apiVersion": "2016-04-30-preview",
+      "apiVersion": "2018-06-01",
       "location": "[parameters('HostPoollocation')]",
       "properties": {
         "platformFaultDomainCount": "[parameters('AVSFault')]",
