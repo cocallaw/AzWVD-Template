@@ -21,6 +21,3 @@ Number of Instances | Yes |
 Host Image Type | Yes | 
 OS | Yes |
 RDSH Is Windows Server | | 
-
-
-https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Templates/azuredeploy.json
