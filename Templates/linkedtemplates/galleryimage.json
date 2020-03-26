@@ -61,7 +61,7 @@
     {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(parameters('vmNameBaseName'),'-nic-', copyindex())]",
-      "apiVersion": "2016-03-30",
+      "apiVersion": "2019-11-01",
       "location": "[parameters('location')]",
       "copy": {
         "name": "nicLoop",
@@ -86,7 +86,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
-      "apiVersion": "2016-04-30-preview",
+      "apiVersion": "2019-07-01",
       "location": "[parameters('location')]",
       "copy": {
         "name": "virtualMachineLoop",
