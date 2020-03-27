@@ -190,8 +190,7 @@
     "baseUrl": {
       "type": "string",
       "metadata": {
-        "description": "The base URL for Windows Virtual Desktop info",
-        "artifactsBaseUrl": ""
+        "description": "The base URL for Windows Virtual Desktop info"
       },
       "defaultValue": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master"
     },
