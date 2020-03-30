@@ -306,6 +306,32 @@
       }
     },
     {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(parameters('vmNameBaseName'),'-nic-', copyindex())]",
+      "apiVersion": "2019-11-01",
+      "location": "[parameters('HostPoolLocation')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]"
+      ],
+      "copy": {
+        "name": "host-nicLoop",
+        "count": "[parameters('numberOfInstances')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
       "apiVersion": "2019-05-01",
       "name": "vmHost-CreationLinked",
       "type": "Microsoft.Resources/deployments",
