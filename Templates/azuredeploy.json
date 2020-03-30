@@ -219,9 +219,8 @@
     "existingDomainUsername": "[first(split(parameters('domainUserFQDN'), '@'))]",
     "existingDomainName": "[last(split(parameters('domainUserFQDN'), '@'))]",
     "subnetRef": "[resourceId(parameters('existingVnetRG'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVnetName'),parameters('existingSubnetName'))]",
+    "ImageSourceLower": "[toLower(parameters('HostImageType'))]",
     "availabilitySetName": "[concat(parameters('vmNameBaseName'),'-avs')]",
-    "vmTemplateName": "[if( equals(parameters('HostImageType'), 'AzureGallery'), 'galleryimage', 'customimage')]",
-    "vmTemplateUri": "[concat(parameters('baseUrl'),'/Templates/linkedtemplates/',variables('vmTemplateName'),'.json')]",
     "HostPoolFriendlyName": "Hostpool",
     "HostPoolDescription": "Created through ARM template",
     "RegistrationExpirationHours": "48",
@@ -229,74 +228,106 @@
     "winsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/winsrv.ps1",
     "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Script.ps1",
     "RDBrokerURL": "https://rdbroker.wvd.microsoft.com",
-    "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus": {
-      "publisher": "MicrosoftWindowsDesktop",
-      "offer": "office-365",
-      "sku": "19h2-evd-o365pp",
-      "version": "latest"
+    "galleryImage": {
+      "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus": {
+        "publisher": "MicrosoftWindowsDesktop",
+        "offer": "office-365",
+        "sku": "19h2-evd-o365pp",
+        "version": "latest"
+      },
+      "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus-1909": {
+        "publisher": "MicrosoftWindowsDesktop",
+        "offer": "office-365",
+        "sku": "19h2-evd-o365pp",
+        "version": "latest"
+      },
+      "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus-1903": {
+        "publisher": "MicrosoftWindowsDesktop",
+        "offer": "office-365",
+        "sku": "1903-evd-o365pp",
+        "version": "latest"
+      },
+      "Windows-10-Enterprise-multi-session": {
+        "publisher": "MicrosoftWindowsDesktop",
+        "offer": "Windows-10",
+        "sku": "19h2-evd",
+        "version": "latest"
+      },
+      "Windows-10-Enterprise-multi-session-1909": {
+        "publisher": "MicrosoftWindowsDesktop",
+        "offer": "Windows-10",
+        "sku": "19h2-evd",
+        "version": "latest"
+      },
+      "Windows-10-Enterprise-multi-session-1903": {
+        "publisher": "MicrosoftWindowsDesktop",
+        "offer": "Windows-10",
+        "sku": "19h1-evd",
+        "version": "latest"
+      },
+      "Windows-10-Enterprise-Latest": {
+        "publisher": "MicrosoftWindowsDesktop",
+        "offer": "Windows-10",
+        "sku": "19h2-ent",
+        "version": "latest"
+      },
+      "Windows-10-Enterprise-1909": {
+        "publisher": "MicrosoftWindowsDesktop",
+        "offer": "Windows-10",
+        "sku": "19h2-ent",
+        "version": "latest"
+      },
+      "Windows-10-Enterprise-1903": {
+        "publisher": "MicrosoftWindowsDesktop",
+        "offer": "Windows-10",
+        "sku": "19h1-ent",
+        "version": "latest"
+      },
+      "2016-Datacenter": {
+        "publisher": "MicrosoftwindowsServer",
+        "offer": "WindowsServer",
+        "sku": "2016-Datacenter",
+        "version": "latest"
+      }
     },
-    "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus-1909": {
-      "publisher": "MicrosoftWindowsDesktop",
-      "offer": "office-365",
-      "sku": "19h2-evd-o365pp",
-      "version": "latest"
-    },
-    "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus-1903": {
-      "publisher": "MicrosoftWindowsDesktop",
-      "offer": "office-365",
-      "sku": "1903-evd-o365pp",
-      "version": "latest"
-    },
-    "Windows-10-Enterprise-multi-session": {
-      "publisher": "MicrosoftWindowsDesktop",
-      "offer": "Windows-10",
-      "sku": "19h2-evd",
-      "version": "latest"
-    },
-    "Windows-10-Enterprise-multi-session-1909": {
-      "publisher": "MicrosoftWindowsDesktop",
-      "offer": "Windows-10",
-      "sku": "19h2-evd",
-      "version": "latest"
-    },
-    "Windows-10-Enterprise-multi-session-1903": {
-      "publisher": "MicrosoftWindowsDesktop",
-      "offer": "Windows-10",
-      "sku": "19h1-evd",
-      "version": "latest"
-    },
-    "Windows-10-Enterprise-Latest": {
-      "publisher": "MicrosoftWindowsDesktop",
-      "offer": "Windows-10",
-      "sku": "19h2-ent",
-      "version": "latest"
-    },
-    "Windows-10-Enterprise-1909": {
-      "publisher": "MicrosoftWindowsDesktop",
-      "offer": "Windows-10",
-      "sku": "19h2-ent",
-      "version": "latest"
-    },
-    "Windows-10-Enterprise-1903": {
-      "publisher": "MicrosoftWindowsDesktop",
-      "offer": "Windows-10",
-      "sku": "19h1-ent",
-      "version": "latest"
-    },
-    "2016-Datacenter": {
-      "publisher": "MicrosoftwindowsServer",
-      "offer": "WindowsServer",
-      "sku": "2016-Datacenter",
-      "version": "latest"
-    },
-    "imageReference": "[variables(parameters('OS'))]"
+    "VMImageReference": {
+      "customimage": {
+        "id": "[resourceId(parameters('CustomImageSourceResourceGroup'), 'Microsoft.Compute/images', parameters('CustomImageSourceName'))]"
+      },
+      "gallery": "[variables('galleryimage')[parameters('OS')]]"
+    }
   },
+  "functions": [
+    {
+      "namespace": "main",
+      "members": {
+        "getVMImageReferenceCustomVHD": {
+          "parameters": [
+            {
+              "name": "imageName",
+              "type": "string"
+            },
+            {
+              "name": "imageRG",
+              "type":"string"
+            }
+          ],
+          "output": {
+            "type": "object",
+            "value": {
+              "id": "[resourceId(parameters('imageRG'), 'Microsoft.Compute/images', parameters('imageName'))]"
+            }
+          }
+        }
+      }
+    }
+  ],
   "resources": [
     {
       "type": "Microsoft.Compute/availabilitySets",
       "name": "[variables('availabilitySetName')]",
       "apiVersion": "2018-06-01",
-      "location": "[parameters('HostPoollocation')]",
+      "location": "[resourceGroup().location]",
       "sku": {
         "name": "Aligned"
       },
@@ -309,7 +340,7 @@
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(parameters('vmNameBaseName'),'-nic-', copyindex())]",
       "apiVersion": "2019-11-01",
-      "location": "[parameters('HostPoolLocation')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
         "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]"
       ],
@@ -331,11 +362,11 @@
         ]
       }
     },
-        {
+    {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
       "apiVersion": "2019-07-01",
-      "location": "[parameters('HostPoollocation')]",
+      "location": "[resourceGroup().location]",
       "copy": {
         "name": "host-vmLoop",
         "count": "[parameters('numberOfInstances')]"
@@ -356,7 +387,7 @@
           "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
-          "imageReference": "[variables('imageReference')]",
+          "imageReference": "[if(equals(variables('ImageSourceLower'), 'customimage'), main.getVMImageReferenceCustomVHD(parameters('CustomImageSourceName'),parameters('CustomImageSourceResourceGroup')), variables('VMImageReference')[variables('ImageSourceLower')])]",
           "osDisk": {
             "createOption": "FromImage",
             "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex(),'-osdisk')]"
@@ -372,61 +403,11 @@
       }
     },
     {
-      "apiVersion": "2019-05-01",
-      "name": "vmHost-CreationLinked",
-      "type": "Microsoft.Resources/deployments",
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('vmTemplateUri')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "adminUsername": {
-            "value": "[parameters('adminUsername')]"
-          },
-          "adminPassword": {
-            "value": "[parameters('adminPassword')]"
-          },
-          "vmNameBaseName": {
-            "value": "[parameters('vmNameBaseName')]"
-          },
-          "vmHostSize": {
-            "value": "[parameters('vmHostSize')]"
-          },
-          "numberOfInstances": {
-            "value": "[parameters('numberOfInstances')]"
-          },
-          "OS": {
-            "value": "[parameters('OS')]"
-          },
-          "CustomImageSourceName": {
-            "value": "[parameters('CustomImageSourceName')]"
-          },
-          "CustomImageSourceResourceGroup": {
-            "value": "[parameters('CustomImageSourceResourceGroup')]"
-          },
-          "subnetRef": {
-            "value": "[variables('subnetRef')]"
-          },
-          "availabilitySetName": {
-            "value": "[variables('availabilitySetName')]"
-          },
-          "location": {
-            "value": "[parameters('HostPoollocation')]"
-          }
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
-      ]
-    },
-    {
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'joindomain')]",
       "condition": "[not(parameters('rdshIsWindowsServer'))]",
-      "location": "[parameters('HostPoollocation')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
         "vmHost-CreationLinked"
       ],
@@ -455,7 +436,7 @@
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'dscextension')]",
-      "location": "[parameters('HostPoollocation')]",
+      "location": "[resourceGroup().location]",
       "condition": "[parameters('rdshIsWindowsServer')]",
       "dependsOn": [
         "vmHost-CreationLinked"
@@ -491,7 +472,7 @@
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/','rdAgent')]",
-      "location": "[parameters('HostPoollocation')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
         "rdsh-domain-join-loop",
         "rdsh-dsc-loop"
