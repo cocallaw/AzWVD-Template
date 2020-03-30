@@ -67,9 +67,7 @@
         "name": "nicLoop",
         "count": "[parameters('numberOfInstances')]"
       },
-      "dependsOn": [    
-        "[parameters('subnetRef')]"
-        ],
+      "dependsOn": [        ],
       "properties": {
         "ipConfigurations": [
           {
