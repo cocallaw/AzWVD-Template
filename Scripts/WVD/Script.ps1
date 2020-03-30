@@ -90,9 +90,9 @@ function Write-Log {
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $DeployAgentLocation = "C:\DeployAgent"
-$BootAgentLocation = "C:\DeployAgent\RDAgentBootLoaderInstall"
+$BootAgentLocation = "C:\DeployAgent\DeployAgent\RDAgentBootLoaderInstall"
 $BootURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
-$InfraAgentLocation = "C:\DeployAgent\RDInfraAgentInstall"
+$InfraAgentLocation = "C:\DeployAgent\DeployAgent\RDInfraAgentInstall"
 $infraURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
 $rdshIs1809OrLaterBool = ($rdshIs1809OrLater -eq "True")
 
