@@ -135,7 +135,7 @@
     "ouPath": {
       "type": "string",
       "metadata": {
-        "description": "Specifies an organizational unit (OU) for the domain account. Enter the full distinguished name of the OU in quotation marks. Example: \"OU=testOU; DC=domain; DC=Domain; DC=com\""
+        "description": "Specifies an organizational unit (OU) for the domain account."
       }
     },
     "domainJoinOptions": {
@@ -212,7 +212,6 @@
     "HostPoolDescription": "Created through ARM template",
     "RegistrationExpirationHours": "48",
     "deployAgentURI": "[concat(parameters('baseUrl'),'/Scripts/WVD/DeployAgent.zip')]",
-    "winsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/winsrv.ps1",
     "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Script.ps1",
     "RDBrokerURL": "https://rdbroker.wvd.microsoft.com",
     "galleryImage": {
