@@ -204,7 +204,7 @@
         "eastus",
         "eastus2",
         "centralus",
-        "westus"        
+        "westus"
       ]
     }
   },
@@ -248,7 +248,9 @@
       "name": "[variables('availabilitySetName')]",
       "apiVersion": "2018-06-01",
       "location": "[parameters('HostPoollocation')]",
-      "sku": "Aligned",
+      "sku": {
+        "name": "Aligned"
+      },
       "properties": {
         "platformFaultDomainCount": "[parameters('AVSFault')]",
         "platformUpdateDomainCount": "[parameters('AVSUpdate')]"
@@ -295,8 +297,9 @@
           "availabilitySetName": {
             "value": "[variables('availabilitySetName')]"
           },
-          "location":{
-            "value": "[parameters('HostPoollocation')]"          }
+          "location": {
+            "value": "[parameters('HostPoollocation')]"
+          }
         }
       },
       "dependsOn": [
