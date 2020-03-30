@@ -200,19 +200,6 @@
         "description": "The base URL for Windows Virtual Desktop info"
       },
       "defaultValue": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master"
-    },
-    "HostPoolLocation": {
-      "type": "string",
-      "defaultValue": "[resourceGroup().location]",
-      "metadata": {
-        "description": "Location for all resources."
-      },
-      "allowedValues": [
-        "eastus",
-        "eastus2",
-        "centralus",
-        "westus"
-      ]
     }
   },
   "variables": {
