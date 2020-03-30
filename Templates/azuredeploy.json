@@ -2,6 +2,10 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    },
     "adminUsername": {
       "type": "string",
       "metadata": {
@@ -295,7 +299,7 @@
             },
             {
               "name": "imageRG",
-              "type":"string"
+              "type": "string"
             }
           ],
           "output": {
@@ -313,7 +317,7 @@
       "type": "Microsoft.Compute/availabilitySets",
       "name": "[variables('availabilitySetName')]",
       "apiVersion": "2018-06-01",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "sku": {
         "name": "Aligned"
       },
@@ -326,7 +330,7 @@
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(parameters('vmNameBaseName'),'-nic-', copyindex())]",
       "apiVersion": "2019-11-01",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]"
       ],
@@ -352,7 +356,7 @@
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
       "apiVersion": "2019-07-01",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "copy": {
         "name": "host-vmLoop",
         "count": "[parameters('numberOfInstances')]"
@@ -393,7 +397,7 @@
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'joindomain')]",
       "condition": "[not(parameters('rdshIsWindowsServer'))]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "dependsOn": [
         "vmHost-CreationLinked"
       ],
@@ -422,7 +426,7 @@
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'dscextension')]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "condition": "[parameters('rdshIsWindowsServer')]",
       "dependsOn": [
         "vmHost-CreationLinked"
@@ -458,7 +462,7 @@
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/','rdAgent')]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "dependsOn": [
         "rdsh-domain-join-loop",
         "rdsh-dsc-loop"
