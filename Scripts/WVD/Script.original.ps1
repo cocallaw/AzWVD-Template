@@ -75,10 +75,10 @@ function Write-Log {
         $DateTime = Get-Date -Format ‘MM-dd-yy HH:mm:ss’ 
         $Invocation = "$($MyInvocation.MyCommand.Source):$($MyInvocation.ScriptLineNumber)" 
         if ($Message) {
-            Add-Content -Value "$DateTime - $Invocation - $Message" -Path "$WVDDeployLogPath\ScriptLog.log" 
+            Add-Content -Value "$DateTime - $Invocation - $Message" -Path "$([environment]::GetEnvironmentVariable('TEMP', 'Machine'))\ScriptLog.log" 
         }
         else {
-            Add-Content -Value "$DateTime - $Invocation - $Error" -Path "$WVDDeployLogPath\ScriptLog.log" 
+            Add-Content -Value "$DateTime - $Invocation - $Error" -Path "$([environment]::GetEnvironmentVariable('TEMP', 'Machine'))\ScriptLog.log" 
         }
     } 
     catch { 
@@ -90,23 +90,27 @@ function Write-Log {
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $DeployAgentLocation = "C:\DeployAgent"
+$BootAgentLocation = "C:\DeployAgent\DeployAgent\RDAgentBootLoaderInstall"
+$BootURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
+$InfraAgentLocation = "C:\DeployAgent\DeployAgent\RDInfraAgentInstall"
+$infraURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
 $rdshIs1809OrLaterBool = ($rdshIs1809OrLater -eq "True")
 
-$WVDDeployLocation = "C:\WVDDeploy"
-$WVDDeployLogPath = "c:\WVDDeploy\logs"
-$BootURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
-$infraURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
+# Downloading the DeployAgent zip file to rdsh vm
+Invoke-WebRequest -Uri $fileURI -OutFile "C:\DeployAgent.zip"
+Write-Log -Message "Downloaded DeployAgent.zip into this location C:\"
 
-# Creating a folder inside rdsh vm for agents and log files
-New-Item -Path $WVDDeployLocation -ItemType Directory
-New-Item -Path $WVDDeployLogPath -ItemType Directory
-Write-Log -Message "Created Directory Structure Begining Setup for WVD"
-Set-Location $WVDDeployLocation
+# Creating a folder inside rdsh vm for extracting deployagent zip file
+New-Item -Path "$DeployAgentLocation" -ItemType directory -Force -ErrorAction SilentlyContinue
+Write-Log -Message "Created a new folder 'DeployAgent' inside VM"
+Expand-Archive "C:\DeployAgent.zip" -DestinationPath "$DeployAgentLocation" -ErrorAction SilentlyContinue
+Write-Log -Message "Extracted the 'Deployagent.zip' file into '$DeployAgentLocation' folder inside VM"
+Set-Location $BootAgentLocation  
 Invoke-WebRequest -Uri $BootURI -OutFile "Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
-Write-Log -Message "Downloaded RDAgentBootLoader"
+Set-Location $InfraAgentLocation
 Invoke-WebRequest -Uri $infraURI -OutFile "Microsoft.RDInfra.RDAgent.Installer-x64.msi"
-Write-Log -Message "Downloaded RDInfra"
-
+Set-Location "$DeployAgentLocation"
+Write-Log -Message "Setting up the location of Deployagent folder"
 
 # Checking if RDInfragent is registered or not in rdsh vm
 $CheckRegistry = Get-ItemProperty -Path "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\RDInfraAgent" -ErrorAction SilentlyContinue
@@ -121,12 +125,10 @@ else {
 }
 
 
-
 if (!$CheckRegistry) {
     
     # Importing WVD PowerShell module
-    #Import-Module .\PowershellModules\Microsoft.RDInfra.RDPowershell.dll
-    Install-Module -Name Microsoft.RDInfra.RDPowerShell
+    Import-Module .\PowershellModules\Microsoft.RDInfra.RDPowershell.dll
     Write-Log -Message "Imported RDMI PowerShell modules successfully"
     $Securepass = ConvertTo-SecureString -String $TenantAdminPassword -AsPlainText -Force
     $Credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($TenantAdminUPN, $Securepass)
