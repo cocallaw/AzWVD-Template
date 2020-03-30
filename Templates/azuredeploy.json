@@ -49,7 +49,7 @@
     "HostImageType": {
       "type": "string",
       "allowedValues": [
-        "AzureGallery",
+        "Gallery",
         "CustomImage"
       ]
     },
@@ -80,17 +80,11 @@
     },
     "CustomImageSourceName": {
       "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "[Required when HostImageType = CustomImage] Name of the managed disk."
-      }
+      "defaultValue": ""
     },
     "CustomImageSourceResourceGroup": {
       "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "[Required when HostImageType = CustomImage] Resource group name for the managed disk, if you choose to provide one."
-      }
+      "defaultValue": ""
     },
     "AVSFault": {
       "type": "int",
@@ -193,10 +187,7 @@
       }
     },
     "AadTenantId": {
-      "type": "string",
-      "metadata": {
-        "description": "[Required when isServicePrincipal = True] This value identifies the Azure AD tenant of the service principal."
-      }
+      "type": "string"
     },
     "baseUrl": {
       "type": "string",
@@ -208,7 +199,6 @@
   },
   "variables": {
     "existingDomainUsername": "[first(split(parameters('domainUserFQDN'), '@'))]",
-    "existingDomainName": "[last(split(parameters('domainUserFQDN'), '@'))]",
     "subnetRef": "[resourceId(parameters('existingVnetRG'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVnetName'),parameters('existingSubnetName'))]",
     "ImageSourceLower": "[toLower(parameters('HostImageType'))]",
     "availabilitySetName": "[concat(parameters('vmNameBaseName'),'-avs')]",
@@ -399,7 +389,7 @@
       "condition": "[not(parameters('rdshIsWindowsServer'))]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "vmHost-CreationLinked"
+        "host-vmLoop"
       ],
       "copy": {
         "name": "rdsh-domain-join-loop",
@@ -429,7 +419,7 @@
       "location": "[parameters('location')]",
       "condition": "[parameters('rdshIsWindowsServer')]",
       "dependsOn": [
-        "vmHost-CreationLinked"
+        "host-vmLoop"
       ],
       "copy": {
         "name": "rdsh-dsc-loop",
