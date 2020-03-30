@@ -248,10 +248,10 @@
       "name": "[variables('availabilitySetName')]",
       "apiVersion": "2018-06-01",
       "location": "[parameters('HostPoollocation')]",
+      "sku": "Aligned",
       "properties": {
         "platformFaultDomainCount": "[parameters('AVSFault')]",
-        "platformUpdateDomainCount": "[parameters('AVSUpdate')]",
-        "managed": true
+        "platformUpdateDomainCount": "[parameters('AVSUpdate')]"
       }
     },
     {
