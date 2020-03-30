@@ -90,6 +90,10 @@ function Write-Log {
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $DeployAgentLocation = "C:\DeployAgent"
+$BootAgentLocation = "C:\DeployAgent\RDAgentBootLoaderInstall"
+$BootURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
+$InfraAgentLocation = "C:\DeployAgent\RDInfraAgentInstall"
+$infraURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
 $rdshIs1809OrLaterBool = ($rdshIs1809OrLater -eq "True")
 
 # Downloading the DeployAgent zip file to rdsh vm
@@ -101,6 +105,10 @@ New-Item -Path "$DeployAgentLocation" -ItemType directory -Force -ErrorAction Si
 Write-Log -Message "Created a new folder 'DeployAgent' inside VM"
 Expand-Archive "C:\DeployAgent.zip" -DestinationPath "$DeployAgentLocation" -ErrorAction SilentlyContinue
 Write-Log -Message "Extracted the 'Deployagent.zip' file into '$DeployAgentLocation' folder inside VM"
+Set-Location $BootAgentLocation  
+Invoke-WebRequest -Uri $BootURI -OutFile "Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
+Set-Location $InfraAgentLocation
+Invoke-WebRequest -Uri $infraURI -OutFile "Microsoft.RDInfra.RDAgent.Installer-x64.msi"
 Set-Location "$DeployAgentLocation"
 Write-Log -Message "Setting up the location of Deployagent folder"
 
