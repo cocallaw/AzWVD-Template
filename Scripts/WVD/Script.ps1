@@ -36,9 +36,6 @@ param(
     [string]$Hours,
 
     [Parameter(mandatory = $true)]
-    [string]$FileURI,
-
-    [Parameter(mandatory = $true)]
     [string]$TenantAdminUPN,
 
     [Parameter(mandatory = $true)]
@@ -86,6 +83,9 @@ function Write-Log {
     } 
 }
 
+# Get Start Time
+$startDTM = (Get-Date)
+Write-Log -Message "Starting WVD Deploy on Host"
 # Setting to Tls12 due to Azure web app security requirements
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -218,17 +218,17 @@ if (!$CheckRegistry) {
     #Get MSI Paths for Install 
     $AgentBootServiceInstaller = (dir $WVDDeployBootPath\ -Filter *.msi | Select-Object).FullName
     $AgentInstaller = (dir $WVDDeployInfraPath\ -Filter *.msi | Select-Object).FullName
-
+    $RegistrationToken = $Registered.Token
 
     #Boot Install
     # Uninstalling previous versions of RDAgentBootLoader
     Write-Log -Message "Uninstalling any previous versions of RDAgentBootLoader on VM"
-    $bootloader_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {A38EE409-424D-4A0D-B5B6-5D66F20F62A5}", "/quiet", "/qn", "/norestart", "/passive", "/l* C:\Users\AgentBootLoaderInstall.txt" -Wait -Passthru
+    $bootloader_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {A38EE409-424D-4A0D-B5B6-5D66F20F62A5}", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPath\AgentBootLoaderInstall.txt" -Wait -Passthru
     $sts = $bootloader_uninstall_status.ExitCode
     Write-Log -Message "Uninstalling RD Infra Agent on VM Complete. Exit code=$sts"
     # Installing RDAgentBootLoader
     Write-Log -Message "Starting install of $AgentBootServiceInstaller"
-    $bootloader_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentBootServiceInstaller", "/quiet", "/qn", "/norestart", "/passive", "/l* C:\Users\AgentBootLoaderInstall.txt" -Wait -Passthru
+    $bootloader_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentBootServiceInstaller", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPathAgentBootLoaderInstall.txt" -Wait -Passthru
     $sts = $bootloader_deploy_status.ExitCode
     Write-Log -Message "Installing RDAgentBootLoader on VM Complete. Exit code=$sts"
 
@@ -236,30 +236,50 @@ if (!$CheckRegistry) {
     #Infra Install
     # Uninstalling previous versions of RDInfraAgent
     Write-Log -Message "Uninstalling any previous versions of RD Infra Agent on VM"
-    $legacy_agent_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {5389488F-551D-4965-9383-E91F27A9F217}", "/quiet", "/qn", "/norestart", "/passive", "/l* C:\Users\AgentUninstall.txt" -Wait -Passthru
+    $legacy_agent_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {5389488F-551D-4965-9383-E91F27A9F217}", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPath\AgentUninstall.txt" -Wait -Passthru
     $sts = $legacy_agent_uninstall_status.ExitCode
     Write-Log -Message "Uninstalling RD Infra Agent on VM Complete. Exit code=$sts"
     # Uninstalling previous versions of RDInfraAgent DLLs
     Write-Log -Message "Uninstalling any previous versions of RD Infra Agent DLL on VM"
-    $agent_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {CB1B8450-4A67-4628-93D3-907DE29BF78C}", "/quiet", "/qn", "/norestart", "/passive", "/l* C:\Users\AgentUninstall.txt" -Wait -Passthru
+    $agent_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {CB1B8450-4A67-4628-93D3-907DE29BF78C}", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPath\AgentUninstall.txt" -Wait -Passthru
     $sts = $agent_uninstall_status.ExitCode
     Write-Log -Message "Uninstalling RD Infra Agent on VM Complete. Exit code=$sts" 
     # Installing RDInfraAgent
-    Write-Log -Message "Installing RD Infra Agent on VM $AgentInstaller"
-    $agent_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentInstaller", "/quiet", "/qn", "/norestart", "/passive", "REGISTRATIONTOKEN=$RegistrationToken", "/l* C:\Users\AgentInstall.txt" -Wait -Passthru
+    Write-Log -Message "Starting install of $AgentInstaller"
+    $agent_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentInstaller", "/quiet", "/qn", "/norestart", "/passive", "REGISTRATIONTOKEN=$RegistrationToken", "/l* $WVDDeployLogPath\AgentInstall.txt" -Wait -Passthru
     $sts = $agent_deploy_status.ExitCode
     Write-Log -Message "Installing RD Infra Agent on VM Complete. Exit code=$sts"
 
 
+    #Set Registry Key For Timezone Redirect
+    $key =  "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server"
+    foreach($k in $key){
+        If  ( -Not ( Test-Path "Registry::$k")){New-Item -Path "Registry::$k" -ItemType RegistryKey -Force}
+        Set-ItemProperty -path "Registry::$k" -Name "fEnableTimeZoneRedirection" -Type "DWord" -Value "1"
+    }
+
+
+    #Starting Service
+    Write-Log -Message "Starting RDAgentBootLoader service"
+    Start-Service RDAgentBootLoader     
+
+
     # Executing DeployAgent psl file in rdsh vm and add to hostpool
-    Write-Log "AgentInstaller is $DeployAgentLocation\RDAgentBootLoaderInstall, InfraInstaller is $DeployAgentLocation\RDInfraAgentInstall, SxS is $DeployAgentLocation\RDInfraSxSStackInstall"
-    $DAgentInstall = .\DeployAgent.ps1 -ComputerName $SessionHostName -AgentBootServiceInstallerFolder "$DeployAgentLocation\RDAgentBootLoaderInstall" -AgentInstallerFolder "$DeployAgentLocation\RDInfraAgentInstall" -SxSStackInstallerFolder "$DeployAgentLocation\RDInfraSxSStackInstall" -EnableSxSStackScriptFolder "$DeployAgentLocation\EnableSxSStackScript" -AdminCredentials $adminCredentials -TenantName $TenantName -PoolName $HostPoolName -RegistrationToken $Registered.Token -StartAgent $true -rdshIs1809OrLater $rdshIs1809OrLaterBool
-    Write-Log -Message "DeployAgent Script was successfully executed and RDAgentBootLoader,RDAgent,StackSxS installed inside VM for existing hostpool: $HostPoolName `
-    $DAgentInstall"
+    # Write-Log "AgentInstaller is $DeployAgentLocation\RDAgentBootLoaderInstall, InfraInstaller is $DeployAgentLocation\RDInfraAgentInstall, SxS is $DeployAgentLocation\RDInfraSxSStackInstall"
+    # $DAgentInstall = .\DeployAgent.ps1 -ComputerName $SessionHostName -AgentBootServiceInstallerFolder "$DeployAgentLocation\RDAgentBootLoaderInstall" -AgentInstallerFolder "$DeployAgentLocation\RDInfraAgentInstall" -SxSStackInstallerFolder "$DeployAgentLocation\RDInfraSxSStackInstall" -EnableSxSStackScriptFolder "$DeployAgentLocation\EnableSxSStackScript" -AdminCredentials $adminCredentials -TenantName $TenantName -PoolName $HostPoolName -RegistrationToken $Registered.Token -StartAgent $true -rdshIs1809OrLater $rdshIs1809OrLaterBool
+    # Write-Log -Message "DeployAgent Script was successfully executed and RDAgentBootLoader,RDAgent,StackSxS installed inside VM for existing hostpool: $HostPoolName `
+    # $DAgentInstall"
 
     #add rdsh vm to hostpool
+    Write-Log -Message "Adding Host To Pool $HostPoolName"
     $addRdsh = Set-RdsSessionHost -TenantName $TenantName -HostPoolName $HostPoolName -Name $SessionHostName -AllowNewSession $true
     $rdshName = $addRdsh.name | Out-String -Stream
     $poolName = $addRdsh.hostpoolname | Out-String -Stream
     Write-Log -Message "Successfully added $rdshName VM to $poolName"
 }
+
+# Get End Time
+$endDTM = (Get-Date)
+Write-Log -Message "WVD Deploy on Host Finished"
+# Echo Time elapsed
+Write-Log -Message "Elapsed Time: $(($endDTM-$startDTM).totalseconds) seconds"
