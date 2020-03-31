@@ -124,10 +124,15 @@ else {
 
 if (!$CheckRegistry) {
     
-    # Importing WVD PowerShell module
-    #Import-Module .\PowershellModules\Microsoft.RDInfra.RDPowershell.dll
-    Install-Module -Name Microsoft.RDInfra.RDPowerShell
+    # Installing & Importing WVD PowerShell module
+    If(-not(Get-InstalledModule Microsoft.RDInfra.RDPowerShell -ErrorAction silentlycontinue)){
+        Install-Module Microsoft.RDInfra.RDPowerShell -Confirm:$False -Force
+        Write-Log -Message "Installed RDMI PowerShell modules successfully"
+    }
+    Import-Module -Name Microsoft.RDInfra.RDPowerShell
     Write-Log -Message "Imported RDMI PowerShell modules successfully"
+
+    #Build Credential Variables
     $Securepass = ConvertTo-SecureString -String $TenantAdminPassword -AsPlainText -Force
     $Credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($TenantAdminUPN, $Securepass)
     $AdminSecurepass = ConvertTo-SecureString -String $localAdminPassword -AsPlainText -Force
