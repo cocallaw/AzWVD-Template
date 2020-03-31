@@ -68,7 +68,7 @@ function Write-Log {
     ) 
      
     try { 
-        $DateTime = Get-Date -Format ‘MM-dd-yy HH:mm:ss’ 
+        $DateTime = Get-Date -Format 'MM-dd-yy HH:mm:ss'
         $Invocation = "$($MyInvocation.MyCommand.Source):$($MyInvocation.ScriptLineNumber)" 
         if ($Message) {
             Add-Content -Value "$DateTime - $Invocation - $Message" -Path "$WVDDeployLogPath\ScriptLog.log" 
@@ -88,7 +88,6 @@ Write-Log -Message "Starting WVD Deploy on Host"
 # Setting to Tls12 due to Azure web app security requirements
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$DeployAgentLocation = "C:\DeployAgent"
 $rdshIs1809OrLaterBool = ($rdshIs1809OrLater -eq "True")
 
 $WVDDeployLogPath = "c:\WVDDeploy\logs"
@@ -103,7 +102,6 @@ New-Item -Path $WVDDeployBootPath -ItemType Directory -Force
 New-Item -Path $WVDDeployInfraPath -ItemType Directory -Force
 
 Write-Log -Message "Created Directory Structure Begining Setup for WVD"
-Set-Location $WVDDeployLocation
 Invoke-WebRequest -Uri $BootURI -OutFile "$WVDDeployBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
 Write-Log -Message "Downloaded RDAgentBootLoader"
 Invoke-WebRequest -Uri $infraURI -OutFile "$WVDDeployInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
@@ -128,9 +126,12 @@ if (!$CheckRegistry) {
     
     # Installing & Importing WVD PowerShell module
     If(-not(Get-InstalledModule Microsoft.RDInfra.RDPowerShell -ErrorAction silentlycontinue)){
+        Install-PackageProvider NuGet -Force
+        Set-PSRepository PSGallery -InstallationPolicy Trusted
         Install-Module Microsoft.RDInfra.RDPowerShell -Confirm:$False -Force
         Write-Log -Message "Installed RDMI PowerShell modules successfully"
     }
+
     Import-Module -Name Microsoft.RDInfra.RDPowerShell
     Write-Log -Message "Imported RDMI PowerShell modules successfully"
 
@@ -224,7 +225,6 @@ if (!$CheckRegistry) {
     Write-Log -Message "Uninstalling any previous versions of RDAgentBootLoader on VM"
     $bootloader_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {A38EE409-424D-4A0D-B5B6-5D66F20F62A5}", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPath\AgentBootLoaderInstall.txt" -Wait -Passthru
     $sts = $bootloader_uninstall_status.ExitCode
-    Write-Log -Message "Uninstalling RD Infra Agent on VM Complete. Exit code=$sts"
     # Installing RDAgentBootLoader
     Write-Log -Message "Starting install of $AgentBootServiceInstaller"
     $bootloader_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentBootServiceInstaller", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPathAgentBootLoaderInstall.txt" -Wait -Passthru
@@ -237,12 +237,10 @@ if (!$CheckRegistry) {
     Write-Log -Message "Uninstalling any previous versions of RD Infra Agent on VM"
     $legacy_agent_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {5389488F-551D-4965-9383-E91F27A9F217}", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPath\AgentUninstall.txt" -Wait -Passthru
     $sts = $legacy_agent_uninstall_status.ExitCode
-    Write-Log -Message "Uninstalling RD Infra Agent on VM Complete. Exit code=$sts"
     # Uninstalling previous versions of RDInfraAgent DLLs
     Write-Log -Message "Uninstalling any previous versions of RD Infra Agent DLL on VM"
     $agent_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {CB1B8450-4A67-4628-93D3-907DE29BF78C}", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPath\AgentUninstall.txt" -Wait -Passthru
     $sts = $agent_uninstall_status.ExitCode
-    Write-Log -Message "Uninstalling RD Infra Agent on VM Complete. Exit code=$sts" 
     # Installing RDInfraAgent
     Write-Log -Message "Starting install of $AgentInstaller"
     $agent_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentInstaller", "/quiet", "/qn", "/norestart", "/passive", "REGISTRATIONTOKEN=$RegistrationToken", "/l* $WVDDeployLogPath\AgentInstall.txt" -Wait -Passthru
@@ -259,7 +257,7 @@ if (!$CheckRegistry) {
 
 
     #Starting Service
-    Write-Log -Message "Starting RDAgentBootLoader service"
+    Write-Log -Message "Starting RDAgentBootLoader service on SessionHostName"
     Start-Service RDAgentBootLoader     
 
 
@@ -270,15 +268,15 @@ if (!$CheckRegistry) {
     # $DAgentInstall"
 
     #add rdsh vm to hostpool
-    Write-Log -Message "Adding Host To Pool $HostPoolName"
+    Write-Log -Message "Adding $SessionHostName To Pool $HostPoolName"
     $addRdsh = Set-RdsSessionHost -TenantName $TenantName -HostPoolName $HostPoolName -Name $SessionHostName -AllowNewSession $true
     $rdshName = $addRdsh.name | Out-String -Stream
     $poolName = $addRdsh.hostpoolname | Out-String -Stream
-    Write-Log -Message "Successfully added $rdshName VM to $poolName"
+    Write-Log -Message "Successfully added $SessionHostName VM to $HostPoolName"
 }
 
 # Get End Time
 $endDTM = (Get-Date)
-Write-Log -Message "WVD Deploy on Host Finished"
+Write-Log -Message "WVD Deploy on $SessionHostName Finished"
 # Echo Time elapsed
 Write-Log -Message "Elapsed Time: $(($endDTM-$startDTM).totalseconds) seconds"
