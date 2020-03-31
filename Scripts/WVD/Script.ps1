@@ -92,19 +92,22 @@ function Write-Log {
 $DeployAgentLocation = "C:\DeployAgent"
 $rdshIs1809OrLaterBool = ($rdshIs1809OrLater -eq "True")
 
-$WVDDeployLocation = "C:\WVDDeploy"
 $WVDDeployLogPath = "c:\WVDDeploy\logs"
+$WVDDeployBootPath = "C:\WVDDeploy\Boot"
+$WVDDeployInfraPath = "C:\WVDDeploy\Infra"
 $BootURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
 $infraURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
 
 # Creating a folder inside rdsh vm for agents and log files
-New-Item -Path $WVDDeployLocation -ItemType Directory
-New-Item -Path $WVDDeployLogPath -ItemType Directory
+New-Item -Path $WVDDeployLogPath -ItemType Directory -Force
+New-Item -Path $WVDDeployBootPath -ItemType Directory -Force
+New-Item -Path $WVDDeployInfraPath -ItemType Directory -Force
+
 Write-Log -Message "Created Directory Structure Begining Setup for WVD"
 Set-Location $WVDDeployLocation
-Invoke-WebRequest -Uri $BootURI -OutFile "Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
+Invoke-WebRequest -Uri $BootURI -OutFile "$WVDDeployBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
 Write-Log -Message "Downloaded RDAgentBootLoader"
-Invoke-WebRequest -Uri $infraURI -OutFile "Microsoft.RDInfra.RDAgent.Installer-x64.msi"
+Invoke-WebRequest -Uri $infraURI -OutFile "$WVDDeployInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
 Write-Log -Message "Downloaded RDInfra"
 
 
@@ -176,9 +179,11 @@ if (!$CheckRegistry) {
     $HPName = Get-RdsHostPool -TenantName $TenantName -Name $HostPoolName -ErrorAction SilentlyContinue
     Write-Log -Message "Checking Hostpool exists inside the Tenant"
     if ($HPName) {
-        Write-log -Message "Hostpool exists inside tenant: $TenantName"
+        Write-log -Message "Hostpool $HPName, exists inside tenant: $TenantName"
     }
     else {
+        Write-log -Message "Hostpool $HPName, does not exist inside tenant: $TenantName"
+        Write-log -Message "Creating $HPName"
         $HPName = New-RdsHostPool -TenantName $TenantName -Name $HostPoolName -Description $Description -FriendlyName $FriendlyName
 
         $HName = $HPName.name | Out-String -Stream
@@ -209,6 +214,42 @@ if (!$CheckRegistry) {
         $Registered = New-RdsRegistrationInfo -TenantName $TenantName -HostPoolName $HostPoolName -ExpirationHours $Hours
         Write-Log -Message "Created new Rds RegistrationInfo into variable 'Registered': $Registered"
     }
+
+    #Get MSI Paths for Install 
+    $AgentBootServiceInstaller = (dir $WVDDeployBootPath\ -Filter *.msi | Select-Object).FullName
+    $AgentInstaller = (dir $WVDDeployInfraPath\ -Filter *.msi | Select-Object).FullName
+
+
+    #Boot Install
+    # Uninstalling previous versions of RDAgentBootLoader
+    Write-Log -Message "Uninstalling any previous versions of RDAgentBootLoader on VM"
+    $bootloader_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {A38EE409-424D-4A0D-B5B6-5D66F20F62A5}", "/quiet", "/qn", "/norestart", "/passive", "/l* C:\Users\AgentBootLoaderInstall.txt" -Wait -Passthru
+    $sts = $bootloader_uninstall_status.ExitCode
+    Write-Log -Message "Uninstalling RD Infra Agent on VM Complete. Exit code=$sts"
+    # Installing RDAgentBootLoader
+    Write-Log -Message "Starting install of $AgentBootServiceInstaller"
+    $bootloader_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentBootServiceInstaller", "/quiet", "/qn", "/norestart", "/passive", "/l* C:\Users\AgentBootLoaderInstall.txt" -Wait -Passthru
+    $sts = $bootloader_deploy_status.ExitCode
+    Write-Log -Message "Installing RDAgentBootLoader on VM Complete. Exit code=$sts"
+
+
+    #Infra Install
+    # Uninstalling previous versions of RDInfraAgent
+    Write-Log -Message "Uninstalling any previous versions of RD Infra Agent on VM"
+    $legacy_agent_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {5389488F-551D-4965-9383-E91F27A9F217}", "/quiet", "/qn", "/norestart", "/passive", "/l* C:\Users\AgentUninstall.txt" -Wait -Passthru
+    $sts = $legacy_agent_uninstall_status.ExitCode
+    Write-Log -Message "Uninstalling RD Infra Agent on VM Complete. Exit code=$sts"
+    # Uninstalling previous versions of RDInfraAgent DLLs
+    Write-Log -Message "Uninstalling any previous versions of RD Infra Agent DLL on VM"
+    $agent_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {CB1B8450-4A67-4628-93D3-907DE29BF78C}", "/quiet", "/qn", "/norestart", "/passive", "/l* C:\Users\AgentUninstall.txt" -Wait -Passthru
+    $sts = $agent_uninstall_status.ExitCode
+    Write-Log -Message "Uninstalling RD Infra Agent on VM Complete. Exit code=$sts" 
+    # Installing RDInfraAgent
+    Write-Log -Message "Installing RD Infra Agent on VM $AgentInstaller"
+    $agent_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentInstaller", "/quiet", "/qn", "/norestart", "/passive", "REGISTRATIONTOKEN=$RegistrationToken", "/l* C:\Users\AgentInstall.txt" -Wait -Passthru
+    $sts = $agent_deploy_status.ExitCode
+    Write-Log -Message "Installing RD Infra Agent on VM Complete. Exit code=$sts"
+
 
     # Executing DeployAgent psl file in rdsh vm and add to hostpool
     Write-Log "AgentInstaller is $DeployAgentLocation\RDAgentBootLoaderInstall, InfraInstaller is $DeployAgentLocation\RDInfraAgentInstall, SxS is $DeployAgentLocation\RDInfraSxSStackInstall"
