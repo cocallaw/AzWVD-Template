@@ -90,22 +90,27 @@ Write-Log -Message "Starting WVD Deploy on Host"
 
 $rdshIs1809OrLaterBool = ($rdshIs1809OrLater -eq "True")
 
+$WVDDeployBasePath = "c:\WVDDeploy\"
 $WVDDeployLogPath = "c:\WVDDeploy\logs"
 $WVDDeployBootPath = "C:\WVDDeploy\Boot"
 $WVDDeployInfraPath = "C:\WVDDeploy\Infra"
+$WVDDeployFslgxPath =  "C:\WVDDeploy\fslogix"
 $BootURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
 $infraURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
+$fslgxURI = "https://aka.ms/fslogix_download"
 
 # Creating a folder inside rdsh vm for agents and log files
 New-Item -Path $WVDDeployLogPath -ItemType Directory -Force
 New-Item -Path $WVDDeployBootPath -ItemType Directory -Force
 New-Item -Path $WVDDeployInfraPath -ItemType Directory -Force
+New-Item -Path $WVDDeployFslgxPath -ItemType Directory -Force
 
 Write-Log -Message "Created Directory Structure Begining Setup for WVD"
 Invoke-WebRequest -Uri $BootURI -OutFile "$WVDDeployBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
 Write-Log -Message "Downloaded RDAgentBootLoader"
 Invoke-WebRequest -Uri $infraURI -OutFile "$WVDDeployInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
 Write-Log -Message "Downloaded RDInfra"
+Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDDeployBasePath\FSLogix_Apps.zip"
 
 
 # Checking if RDInfragent is registered or not in rdsh vm
