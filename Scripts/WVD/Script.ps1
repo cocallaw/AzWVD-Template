@@ -105,15 +105,18 @@ New-Item -Path $WVDDeployBootPath -ItemType Directory -Force
 New-Item -Path $WVDDeployInfraPath -ItemType Directory -Force
 New-Item -Path $WVDDeployFslgxPath -ItemType Directory -Force
 
+$AssetstartDTM = (Get-Date)
 Write-Log -Message "Created Directory Structure Begining Setup for WVD"
 Invoke-WebRequest -Uri $BootURI -OutFile "$WVDDeployBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
 Write-Log -Message "Downloaded RDAgentBootLoader"
 Invoke-WebRequest -Uri $infraURI -OutFile "$WVDDeployInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
 Write-Log -Message "Downloaded RDInfra"
 Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDDeployBasePath\FSLogix_Apps.zip"
+Write-Log -Message "Downloaded FSLogix"
 Expand-Archive "$WVDDeployBasePath\FSLogix_Apps.zip" -DestinationPath "$WVDDeployFslgxPath" -ErrorAction SilentlyContinue
 Remove-Item "$WVDDeployBasePath\FSLogix_Apps.zip"
-
+$AssetendDTM = (Get-Date)
+Write-Log -Message "Asset Download Time: $(($endDTM-$startDTM).totalseconds) seconds"
 
 # Checking if RDInfragent is registered or not in rdsh vm
 $CheckRegistry = Get-ItemProperty -Path "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\RDInfraAgent" -ErrorAction SilentlyContinue
