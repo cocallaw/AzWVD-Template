@@ -206,7 +206,6 @@
     "HostPoolFriendlyName": "Hostpool",
     "HostPoolDescription": "Created through ARM template",
     "RegistrationExpirationHours": "48",
-    "deployAgentURI": "[concat(parameters('baseUrl'),'/Scripts/WVD/DeployAgent.zip')]",
     "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Script.ps1",
     "RDBrokerURL": "https://rdbroker.wvd.microsoft.com",
     "galleryImage": {
