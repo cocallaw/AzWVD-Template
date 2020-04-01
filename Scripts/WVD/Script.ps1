@@ -111,6 +111,8 @@ Write-Log -Message "Downloaded RDAgentBootLoader"
 Invoke-WebRequest -Uri $infraURI -OutFile "$WVDDeployInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
 Write-Log -Message "Downloaded RDInfra"
 Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDDeployBasePath\FSLogix_Apps.zip"
+Expand-Archive "$WVDDeployBasePath\FSLogix_Apps.zip" -DestinationPath "$WVDDeployFslgxPath" -ErrorAction SilentlyContinue
+Remove-Item "$WVDDeployBasePath\FSLogix_Apps.zip"
 
 
 # Checking if RDInfragent is registered or not in rdsh vm
@@ -252,6 +254,11 @@ if (!$CheckRegistry) {
     $sts = $agent_deploy_status.ExitCode
     Write-Log -Message "Installing RD Infra Agent on VM Complete. Exit code=$sts"
 
+    #FSLogix Install
+    Write-Log -Message "Starting Install of FSLogix"
+    $fslgx_deploy_status = Start-Process "$WVDDeployFslgxPath\x64\Release\FSLogixAppsSetup.exe" -ArgumentList "/install /quiet /norestart" -Wait -Passthru
+    $sts = $fslgx_deploy_status.ExitCode
+    Write-Log -Message "Installing FSLogix Agent on VM Complete. Exit code=$sts"
 
     #Set Registry Key For Timezone Redirect
     $key =  "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server"
