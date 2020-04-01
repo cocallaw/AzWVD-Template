@@ -1,14 +1,13 @@
 <#
 
 .SYNOPSIS
-Creating Hostpool and add sessionhost servers to existing/new Hostpool.
+
 
 .DESCRIPTION
-This script add sessionhost servers to existing/new Hostpool
-The supported Operating Systems Windows Server 2016.
+.
 
 .ROLE
-Readers
+
 
 #>
 
@@ -34,9 +33,6 @@ param(
 
     [Parameter(mandatory = $true)]
     [string]$Hours,
-
-    [Parameter(mandatory = $true)]
-    [string]$FileURI,
 
     [Parameter(mandatory = $true)]
     [string]$TenantAdminUPN,
@@ -72,13 +68,13 @@ function Write-Log {
     ) 
      
     try { 
-        $DateTime = Get-Date -Format ‘MM-dd-yy HH:mm:ss’ 
+        $DateTime = Get-Date -Format 'MM-dd-yy HH:mm:ss'
         $Invocation = "$($MyInvocation.MyCommand.Source):$($MyInvocation.ScriptLineNumber)" 
         if ($Message) {
-            Add-Content -Value "$DateTime - $Invocation - $Message" -Path "$([environment]::GetEnvironmentVariable('TEMP', 'Machine'))\ScriptLog.log" 
+            Add-Content -Value "$DateTime - $Invocation - $Message" -Path "$WVDDeployLogPath\ScriptLog.log" 
         }
         else {
-            Add-Content -Value "$DateTime - $Invocation - $Error" -Path "$([environment]::GetEnvironmentVariable('TEMP', 'Machine'))\ScriptLog.log" 
+            Add-Content -Value "$DateTime - $Invocation - $Error" -Path "$WVDDeployLogPath\ScriptLog.log" 
         }
     } 
     catch { 
@@ -86,31 +82,38 @@ function Write-Log {
     } 
 }
 
+# Get Start Time
+$startDTM = (Get-Date)
+Write-Log -Message "Starting WVD Deploy on Host"
 # Setting to Tls12 due to Azure web app security requirements
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$DeployAgentLocation = "C:\DeployAgent"
-$BootAgentLocation = "C:\DeployAgent\DeployAgent\RDAgentBootLoaderInstall"
-$BootURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
-$InfraAgentLocation = "C:\DeployAgent\DeployAgent\RDInfraAgentInstall"
-$infraURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
 $rdshIs1809OrLaterBool = ($rdshIs1809OrLater -eq "True")
 
-# Downloading the DeployAgent zip file to rdsh vm
-Invoke-WebRequest -Uri $fileURI -OutFile "C:\DeployAgent.zip"
-Write-Log -Message "Downloaded DeployAgent.zip into this location C:\"
+$WVDDeployBasePath = "c:\WVDDeploy\"
+$WVDDeployLogPath = "c:\WVDDeploy\logs"
+$WVDDeployBootPath = "C:\WVDDeploy\Boot"
+$WVDDeployInfraPath = "C:\WVDDeploy\Infra"
+$WVDDeployFslgxPath =  "C:\WVDDeploy\fslogix"
+$BootURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrxrH"
+$infraURI = "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RWrmXv"
+$fslgxURI = "https://aka.ms/fslogix_download"
 
-# Creating a folder inside rdsh vm for extracting deployagent zip file
-New-Item -Path "$DeployAgentLocation" -ItemType directory -Force -ErrorAction SilentlyContinue
-Write-Log -Message "Created a new folder 'DeployAgent' inside VM"
-Expand-Archive "C:\DeployAgent.zip" -DestinationPath "$DeployAgentLocation" -ErrorAction SilentlyContinue
-Write-Log -Message "Extracted the 'Deployagent.zip' file into '$DeployAgentLocation' folder inside VM"
-Set-Location $BootAgentLocation  
-Invoke-WebRequest -Uri $BootURI -OutFile "Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
-Set-Location $InfraAgentLocation
-Invoke-WebRequest -Uri $infraURI -OutFile "Microsoft.RDInfra.RDAgent.Installer-x64.msi"
-Set-Location "$DeployAgentLocation"
-Write-Log -Message "Setting up the location of Deployagent folder"
+# Creating a folder inside rdsh vm for agents and log files
+New-Item -Path $WVDDeployLogPath -ItemType Directory -Force
+New-Item -Path $WVDDeployBootPath -ItemType Directory -Force
+New-Item -Path $WVDDeployInfraPath -ItemType Directory -Force
+New-Item -Path $WVDDeployFslgxPath -ItemType Directory -Force
+
+Write-Log -Message "Created Directory Structure Begining Setup for WVD"
+Invoke-WebRequest -Uri $BootURI -OutFile "$WVDDeployBootPath\Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi"
+Write-Log -Message "Downloaded RDAgentBootLoader"
+Invoke-WebRequest -Uri $infraURI -OutFile "$WVDDeployInfraPath\Microsoft.RDInfra.RDAgent.Installer-x64.msi"
+Write-Log -Message "Downloaded RDInfra"
+Invoke-WebRequest -Uri $fslgxURI -OutFile "$WVDDeployBasePath\FSLogix_Apps.zip"
+Expand-Archive "$WVDDeployBasePath\FSLogix_Apps.zip" -DestinationPath "$WVDDeployFslgxPath" -ErrorAction SilentlyContinue
+Remove-Item "$WVDDeployBasePath\FSLogix_Apps.zip"
+
 
 # Checking if RDInfragent is registered or not in rdsh vm
 $CheckRegistry = Get-ItemProperty -Path "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\RDInfraAgent" -ErrorAction SilentlyContinue
@@ -125,11 +128,21 @@ else {
 }
 
 
+
 if (!$CheckRegistry) {
     
-    # Importing WVD PowerShell module
-    Import-Module .\PowershellModules\Microsoft.RDInfra.RDPowershell.dll
+    # Installing & Importing WVD PowerShell module
+    If(-not(Get-InstalledModule Microsoft.RDInfra.RDPowerShell -ErrorAction silentlycontinue)){
+        Install-PackageProvider NuGet -Force
+        Set-PSRepository PSGallery -InstallationPolicy Trusted
+        Install-Module Microsoft.RDInfra.RDPowerShell -Confirm:$False -Force
+        Write-Log -Message "Installed RDMI PowerShell modules successfully"
+    }
+
+    Import-Module -Name Microsoft.RDInfra.RDPowerShell
     Write-Log -Message "Imported RDMI PowerShell modules successfully"
+
+    #Build Credential Variables
     $Securepass = ConvertTo-SecureString -String $TenantAdminPassword -AsPlainText -Force
     $Credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($TenantAdminUPN, $Securepass)
     $AdminSecurepass = ConvertTo-SecureString -String $localAdminPassword -AsPlainText -Force
@@ -173,9 +186,11 @@ if (!$CheckRegistry) {
     $HPName = Get-RdsHostPool -TenantName $TenantName -Name $HostPoolName -ErrorAction SilentlyContinue
     Write-Log -Message "Checking Hostpool exists inside the Tenant"
     if ($HPName) {
-        Write-log -Message "Hostpool exists inside tenant: $TenantName"
+        Write-log -Message "Hostpool $HPName, exists inside tenant: $TenantName"
     }
     else {
+        Write-log -Message "Hostpool $HPName, does not exist inside tenant: $TenantName"
+        Write-log -Message "Creating $HPName"
         $HPName = New-RdsHostPool -TenantName $TenantName -Name $HostPoolName -Description $Description -FriendlyName $FriendlyName
 
         $HName = $HPName.name | Out-String -Stream
@@ -207,15 +222,67 @@ if (!$CheckRegistry) {
         Write-Log -Message "Created new Rds RegistrationInfo into variable 'Registered': $Registered"
     }
 
-    # Executing DeployAgent psl file in rdsh vm and add to hostpool
-    Write-Log "AgentInstaller is $DeployAgentLocation\RDAgentBootLoaderInstall, InfraInstaller is $DeployAgentLocation\RDInfraAgentInstall, SxS is $DeployAgentLocation\RDInfraSxSStackInstall"
-    $DAgentInstall = .\DeployAgent.ps1 -ComputerName $SessionHostName -AgentBootServiceInstallerFolder "$DeployAgentLocation\RDAgentBootLoaderInstall" -AgentInstallerFolder "$DeployAgentLocation\RDInfraAgentInstall" -SxSStackInstallerFolder "$DeployAgentLocation\RDInfraSxSStackInstall" -EnableSxSStackScriptFolder "$DeployAgentLocation\EnableSxSStackScript" -AdminCredentials $adminCredentials -TenantName $TenantName -PoolName $HostPoolName -RegistrationToken $Registered.Token -StartAgent $true -rdshIs1809OrLater $rdshIs1809OrLaterBool
-    Write-Log -Message "DeployAgent Script was successfully executed and RDAgentBootLoader,RDAgent,StackSxS installed inside VM for existing hostpool: $HostPoolName `
-    $DAgentInstall"
+    #Get MSI Paths for Install 
+    $AgentBootServiceInstaller = (dir $WVDDeployBootPath\ -Filter *.msi | Select-Object).FullName
+    $AgentInstaller = (dir $WVDDeployInfraPath\ -Filter *.msi | Select-Object).FullName
+    $RegistrationToken = $Registered.Token
+
+    #Boot Install
+    # Uninstalling previous versions of RDAgentBootLoader
+    Write-Log -Message "Uninstalling any previous versions of RDAgentBootLoader on VM"
+    $bootloader_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {A38EE409-424D-4A0D-B5B6-5D66F20F62A5}", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPath\AgentBootLoaderInstall.txt" -Wait -Passthru
+    $sts = $bootloader_uninstall_status.ExitCode
+    # Installing RDAgentBootLoader
+    Write-Log -Message "Starting install of $AgentBootServiceInstaller"
+    $bootloader_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentBootServiceInstaller", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPathAgentBootLoaderInstall.txt" -Wait -Passthru
+    $sts = $bootloader_deploy_status.ExitCode
+    Write-Log -Message "Installing RDAgentBootLoader on VM Complete. Exit code=$sts"
+
+
+    #Infra Install
+    # Uninstalling previous versions of RDInfraAgent
+    Write-Log -Message "Uninstalling any previous versions of RD Infra Agent on VM"
+    $legacy_agent_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {5389488F-551D-4965-9383-E91F27A9F217}", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPath\AgentUninstall.txt" -Wait -Passthru
+    $sts = $legacy_agent_uninstall_status.ExitCode
+    # Uninstalling previous versions of RDInfraAgent DLLs
+    Write-Log -Message "Uninstalling any previous versions of RD Infra Agent DLL on VM"
+    $agent_uninstall_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/x {CB1B8450-4A67-4628-93D3-907DE29BF78C}", "/quiet", "/qn", "/norestart", "/passive", "/l* $WVDDeployLogPath\AgentUninstall.txt" -Wait -Passthru
+    $sts = $agent_uninstall_status.ExitCode
+    # Installing RDInfraAgent
+    Write-Log -Message "Starting install of $AgentInstaller"
+    $agent_deploy_status = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $AgentInstaller", "/quiet", "/qn", "/norestart", "/passive", "REGISTRATIONTOKEN=$RegistrationToken", "/l* $WVDDeployLogPath\AgentInstall.txt" -Wait -Passthru
+    $sts = $agent_deploy_status.ExitCode
+    Write-Log -Message "Installing RD Infra Agent on VM Complete. Exit code=$sts"
+
+    #FSLogix Install
+    Write-Log -Message "Starting Install of FSLogix"
+    $fslgx_deploy_status = Start-Process "$WVDDeployFslgxPath\x64\Release\FSLogixAppsSetup.exe" -ArgumentList "/install /quiet /norestart" -Wait -Passthru
+    $sts = $fslgx_deploy_status.ExitCode
+    Write-Log -Message "Installing FSLogix Agent on VM Complete. Exit code=$sts"
+
+    #Set Registry Key For Timezone Redirect
+    $key =  "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server"
+    foreach($k in $key){
+        If  ( -Not ( Test-Path "Registry::$k")){New-Item -Path "Registry::$k" -ItemType RegistryKey -Force}
+        Set-ItemProperty -path "Registry::$k" -Name "fEnableTimeZoneRedirection" -Type "DWord" -Value "1"
+    }
+
+
+    #Starting Service
+    Write-Log -Message "Starting RDAgentBootLoader service on SessionHostName"
+    Start-Service RDAgentBootLoader     
+
 
     #add rdsh vm to hostpool
+    Write-Log -Message "Adding $SessionHostName To Pool $HostPoolName"
     $addRdsh = Set-RdsSessionHost -TenantName $TenantName -HostPoolName $HostPoolName -Name $SessionHostName -AllowNewSession $true
     $rdshName = $addRdsh.name | Out-String -Stream
     $poolName = $addRdsh.hostpoolname | Out-String -Stream
-    Write-Log -Message "Successfully added $rdshName VM to $poolName"
+    Write-Log -Message "Successfully added $SessionHostName VM to $HostPoolName"
 }
+
+# Get End Time
+$endDTM = (Get-Date)
+Write-Log -Message "WVD Deploy on $SessionHostName Finished"
+# Echo Time elapsed
+Write-Log -Message "Elapsed Time: $(($endDTM-$startDTM).totalseconds) seconds"
