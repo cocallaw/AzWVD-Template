@@ -7,7 +7,16 @@
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
+
+### Master
+
 [![Build Status](https://dev.azure.com/cocallaw/WVD%20ARM%20Template/_apis/build/status/WVD%20ARM%20Template%20Validation?branchName=master)](https://dev.azure.com/cocallaw/WVD%20ARM%20Template/_build/latest?definitionId=2&branchName=master)
+
+### Automation Updates
+[![Build Status](https://dev.azure.com/cocallaw/WVD%20ARM%20Template/_apis/build/status/WVD%20ARM%20Validation?branchName=Automation-Updates)](https://dev.azure.com/cocallaw/WVD%20ARM%20Template/_build/latest?definitionId=2&branchName=Automation-Updates)
+
+### Housekeeping
+[![Build Status](https://dev.azure.com/cocallaw/WVD%20ARM%20Template/_apis/build/status/WVD%20ARM%20Validation?branchName=Housekeeping)](https://dev.azure.com/cocallaw/WVD%20ARM%20Template/_build/latest?definitionId=2&branchName=Housekeeping)
 
 ## Template Parameters
 
