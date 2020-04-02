@@ -146,6 +146,7 @@
     },
     "ExistingTenantGroupName": {
       "type": "string",
+      "defaultValue" :"Default Tenant Group",
       "metadata": {
         "description": "The name of the tenant group in the WVD deployment"
       }
