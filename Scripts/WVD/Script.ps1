@@ -46,9 +46,6 @@ param(
     [Parameter(mandatory = $true)]
     [string]$localAdminPassword,
 
-    [Parameter(mandatory = $true)]
-    [string]$rdshIs1809OrLater,
-
     [Parameter(mandatory = $false)]
     [string]$isServicePrincipal = "False",
 
@@ -87,8 +84,6 @@ $startDTM = (Get-Date)
 Write-Log -Message "Starting WVD Deploy on Host"
 # Setting to Tls12 due to Azure web app security requirements
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-$rdshIs1809OrLaterBool = ($rdshIs1809OrLater -eq "True")
 
 $WVDDeployBasePath = "c:\WVDDeploy\"
 $WVDDeployLogPath = "c:\WVDDeploy\logs"

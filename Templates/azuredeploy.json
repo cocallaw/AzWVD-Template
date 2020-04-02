@@ -175,12 +175,6 @@
         "description": "The password that corresponds to the tenant admin UPN."
       }
     },
-    "rdshIs1809OrLater": {
-      "type": "bool",
-      "metadata": {
-        "description": "If the VM is Windows Server 2019+ or Windows 10 1809+, enter true. Else, enter false."
-      }
-    },
     "isServicePrincipal": {
       "type": "bool",
       "defaultValue": false,
@@ -476,7 +470,7 @@
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File Script.ps1',' -RDBrokerURL \"', variables('RDBrokerURL'), '\"', ' ', ' -definedTenantGroupName \"', parameters('ExistingTenantGroupName'), '\"',' ',' -TenantName \"', parameters('ExistingTenantName'), '\"',' ', ' -HostPoolName \"', parameters('HostPoolName'), '\"',' ', ' -FriendlyName \"', variables('HostPoolFriendlyName'), '\"',' ', ' -Description \"', variables('HostPoolDescription'), '\"',' ', ' -Hours \"', variables('RegistrationExpirationHours'), '\"',' ', ' -TenantAdminUPN \"', parameters('TenantAdminUpnOrApplicationId'), '\"',' ', ' -TenantAdminPassword \"', parameters('TenantAdminPassword'), '\"',' ',' -localAdminUsername \"', variables('existingDomainUsername'), '\"',' ', ' -localAdminpassword \"', parameters('domainPassword'), '\"', ' ', ' -rdshIs1809OrLater \"', parameters('rdshIs1809OrLater'), '\"', ' ', ' -isServicePrincipal \"', parameters('isServicePrincipal'), '\"', ' ', ' -AadTenantId \"', parameters('AadTenantId'), '\"')]"
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File Script.ps1',' -RDBrokerURL \"', variables('RDBrokerURL'), '\"', ' ', ' -definedTenantGroupName \"', parameters('ExistingTenantGroupName'), '\"',' ',' -TenantName \"', parameters('ExistingTenantName'), '\"',' ', ' -HostPoolName \"', parameters('HostPoolName'), '\"',' ', ' -FriendlyName \"', variables('HostPoolFriendlyName'), '\"',' ', ' -Description \"', variables('HostPoolDescription'), '\"',' ', ' -Hours \"', variables('RegistrationExpirationHours'), '\"',' ', ' -TenantAdminUPN \"', parameters('TenantAdminUpnOrApplicationId'), '\"',' ', ' -TenantAdminPassword \"', parameters('TenantAdminPassword'), '\"',' ',' -localAdminUsername \"', variables('existingDomainUsername'), '\"',' ', ' -localAdminpassword \"', parameters('domainPassword'), '\"', ' ', ' -isServicePrincipal \"', parameters('isServicePrincipal'), '\"', ' ', ' -AadTenantId \"', parameters('AadTenantId'), '\"')]"
         }
       }
     }
