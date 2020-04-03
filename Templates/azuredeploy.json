@@ -6,24 +6,24 @@
       "type": "string",
       "defaultValue": "[resourceGroup().location]"
     },
-    "adminUsername": {
+    "localadminUsername": {
       "type": "string",
       "metadata": {
         "description": "Admin username for VMs"
       }
     },
-    "adminPassword": {
+    "localadminPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Admin password for VMs"
       }
     },
-    "vmNameBaseName": {
+    "vmHostBaseName": {
       "type": "string",
       "maxLength": 10,
       "minLength": 3,
       "metadata": {
-        "description": "Base VM that will concated/incrimented for resources"
+        "description": "Base VM that will incrimented with -<number> for each instance"
       }
     },
     "vmHostSize": {
@@ -37,7 +37,7 @@
         "Standard_D2s_v3"
       ]
     },
-    "numberOfInstances": {
+    "numberOfHosts": {
       "type": "int",
       "defaultValue": 2,
       "minValue": 2,
@@ -197,7 +197,7 @@
     "existingDomainUsername": "[first(split(parameters('domainUserFQDN'), '@'))]",
     "subnetRef": "[resourceId(parameters('existingVnetRG'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVnetName'),parameters('existingSubnetName'))]",
     "ImageSourceLower": "[toLower(parameters('HostImageType'))]",
-    "availabilitySetName": "[concat(parameters('vmNameBaseName'),'-avs')]",
+    "availabilitySetName": "[concat(parameters('vmHostBaseName'),'-avs')]",
     "HostPoolFriendlyName": "Hostpool",
     "HostPoolDescription": "Created through ARM template",
     "RegistrationExpirationHours": "48",
@@ -313,7 +313,7 @@
     },
     {
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(parameters('vmNameBaseName'),'-nic-', copyindex())]",
+      "name": "[concat(parameters('vmHostBaseName'),'-nic-', copyindex())]",
       "apiVersion": "2019-11-01",
       "location": "[parameters('location')]",
       "dependsOn": [
@@ -321,7 +321,7 @@
       ],
       "copy": {
         "name": "host-nicLoop",
-        "count": "[parameters('numberOfInstances')]"
+        "count": "[parameters('numberOfHosts')]"
       },
       "properties": {
         "ipConfigurations": [
@@ -339,12 +339,12 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
+      "name": "[concat(parameters('vmHostBaseName'),'-', copyIndex())]",
       "apiVersion": "2019-07-01",
       "location": "[parameters('location')]",
       "copy": {
         "name": "host-vmLoop",
-        "count": "[parameters('numberOfInstances')]"
+        "count": "[parameters('numberOfHosts')]"
       },
       "dependsOn": [
         "host-nicLoop"
@@ -357,21 +357,21 @@
           "vmSize": "[parameters('VMHostSize')]"
         },
         "osProfile": {
-          "computerName": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "computerName": "[concat(parameters('vmHostBaseName'),'-', copyIndex())]",
+          "adminUsername": "[parameters('localadminUsername')]",
+          "adminPassword": "[parameters('localadminPassword')]"
         },
         "storageProfile": {
           "imageReference": "[if(equals(variables('ImageSourceLower'), 'customimage'), main.getVMImageReferenceCustomVHD(parameters('CustomImageSourceName'),parameters('CustomImageSourceResourceGroup')), variables('VMImageReference')[variables('ImageSourceLower')])]",
           "osDisk": {
             "createOption": "FromImage",
-            "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex(),'-osdisk')]"
+            "name": "[concat(parameters('vmHostBaseName'),'-', copyIndex(),'-osdisk')]"
           }
         },
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmNameBaseName'),'-nic-', copyindex()))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmHostBaseName'),'-nic-', copyindex()))]"
             }
           ]
         }
@@ -380,7 +380,7 @@
     {
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'joindomain')]",
+      "name": "[concat(parameters('vmHostBaseName'),'-', copyindex(),'/', 'joindomain')]",
       "condition": "[not(parameters('rdshIsWindowsServer'))]",
       "location": "[parameters('location')]",
       "dependsOn": [
@@ -388,7 +388,7 @@
       ],
       "copy": {
         "name": "rdsh-domain-join-loop",
-        "count": "[parameters('numberOfInstances')]"
+        "count": "[parameters('numberOfHosts')]"
       },
       "properties": {
         "publisher": "Microsoft.Compute",
@@ -410,7 +410,7 @@
     {
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'dscextension')]",
+      "name": "[concat(parameters('vmHostBaseName'),'-', copyindex(),'/', 'dscextension')]",
       "location": "[parameters('location')]",
       "condition": "[parameters('rdshIsWindowsServer')]",
       "dependsOn": [
@@ -418,7 +418,7 @@
       ],
       "copy": {
         "name": "rdsh-dsc-loop",
-        "count": "[parameters('numberOfInstances')]"
+        "count": "[parameters('numberOfHosts')]"
       },
       "properties": {
         "publisher": "Microsoft.Powershell",
@@ -446,7 +446,7 @@
     {
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/','rdAgent')]",
+      "name": "[concat(parameters('vmHostBaseName'),'-', copyindex(),'/','rdAgent')]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "rdsh-domain-join-loop",
@@ -454,7 +454,7 @@
       ],
       "copy": {
         "name": "rdsh-enable-loop",
-        "count": "[parameters('numberOfInstances')]"
+        "count": "[parameters('numberOfHosts')]"
       },
       "tags": {
         "displayName": "script"
