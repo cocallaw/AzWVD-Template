@@ -33,8 +33,8 @@ This template utilizes the Azure VM Custom Script Extension to run Script.ps1, w
 Parameter | Required | Description
 --- | --- | ---
 Location | Yes | Region resources will be deployed to, defaults to Resource Group location
-localadminUsername | Yes | Admin username for Host VMs
-localadminPassword | Yes | Admin password for Host VMs
+localAdminUsername | Yes | Admin username for Host VMs
+localAdminPassword | Yes | Admin password for Host VMs
 vmHostBaseName | Yes | Base VM name that will incrimented with -number for each instance
 vmHostSize | Yes | VM SKU size to be used for all Hosts created
 numberOfHosts | Yes | Number of VM Hosts to deploy
