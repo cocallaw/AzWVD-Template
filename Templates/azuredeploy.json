@@ -28,17 +28,10 @@
     },
     "vmHostSize": {
       "type": "string",
-      "allowedValues": [
-        "Standard_F2s",
-        "Standard_F4s",
-        "Standard_F8s",
-        "Standard_F16s_v2",
-        "Standard_D1_v2",
-        "Standard_D2s_v3"
-      ],
       "metadata": {
-        "description": "VM SKU size to be used for all Hosts created"
-      }
+        "description": "VM SKU size to be used for all Hosts created eg. Standard_F4s_v2 or Standard_NV6s_v2"
+      },
+      "defaultValue" : "Standard_F4s_v2"
     },
     "numberOfHosts": {
       "type": "int",
