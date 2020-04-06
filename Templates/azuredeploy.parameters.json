@@ -5,10 +5,10 @@
     "location": {
       "value": "eastus"
     },
-    "localadminUsername": {
+    "localAdminUsername": {
       "value": "GEN-UNIQUE"
     },
-    "localadminPassword": {
+    "localAdminPassword": {
       "value": "GEN-PASSWORD"
     },
     "vmHostBaseName": {
