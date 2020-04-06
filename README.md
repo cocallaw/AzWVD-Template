@@ -18,10 +18,10 @@ The following items are required to already exist for the template to deploy suc
 * Azure Virtual Network and Subnet in the same region and subscription
 * Windows AD Domain and AD user capable of joining machines to the domain
 * Network connectivity from the subnet being used to the AD infrastructure
-* Azure WVD Tenant
+* Azure WVD Tenant and Host Pool ([Script.ps1](https://github.com/cocallaw/AzWVD-Template/blob/master/Scripts/WVD/Script.ps1) will create Host Pool if it does not exist in Tenant given)
 * Azure WVD Tenant Admin User or SPN credentials 
 
-This template utilizes the Azure VM Custom Script Extension to run Script.ps1, which performs the WVD specific prep, and joining to the specified Host Pool. The script uses public URLs to download and install the most recent version of following items-
+This template utilizes the Azure VM Custom Script Extension to run [Script.ps1](https://github.com/cocallaw/AzWVD-Template/blob/master/Scripts/WVD/Script.ps1), which performs the WVD specific prep, and joining to the specified Host Pool. The script uses public URLs to download and install the most recent version of following items-
 
 * Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi
 * Microsoft.RDInfra.RDAgent.Installer-x64.msi
