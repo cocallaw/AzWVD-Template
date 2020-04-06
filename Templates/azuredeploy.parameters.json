@@ -2,35 +2,89 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "adminUsername": {
+    "location": {
+      "value": "eastus"
+    },
+    "localadminUsername": {
       "value": "GEN-UNIQUE"
     },
-    "adminPassword": {
+    "localadminPassword": {
       "value": "GEN-PASSWORD"
     },
-    "vmNameBaseName": {
+    "vmHostBaseName": {
       "value": "GEN-UNIQUE"
     },
-    "numberOfInstances": {
+    "vmHostSize": {
+      "value": ""
+    },
+    "numberOfHosts": {
       "value": 2
     },
-    "OS": {
-      "value": "Windows Server 2016"
+    "HostImageType": {
+      "value": ""
+    },
+    "HostOS": {
+      "value": "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus"
+    },
+    "HostIsWindowsServer": {
+      "value": false
+    },
+    "CustomImageSourceName": {
+      "value": "myCustomImage"
+    },
+    "CustomImageSourceResourceGroup": {
+      "value": "myImageRG"
     },
     "AVSFault": {
       "value": 2
     },
     "AVSUpdate": {
-      "value": 2
+      "value": 5
     },
     "existingVNetRG": {
-      "value": "Windows Server 2016"
+      "value": "myNetworkRG"
     },
     "existingVNetName": {
       "value": "myVNet"
     },
     "existingSubnetName": {
       "value": "mySubnet"
+    },
+    "domainToJoin": {
+      "value": ""
+    },
+    "domainUserFQDN": {
+      "value": ""
+    },
+    "domainPassword": {
+      "value": ""
+    },
+    "ouPath": {
+      "value": ""
+    },
+    "domainJoinOptions": {
+      "value": "3"
+    },
+    "ExistingTenantGroupName": {
+      "value": "Default Tenant Group"
+    },
+    "ExistingTenantName": {
+      "value": "My WVD Tenant"
+    },
+    "HostPoolName": {
+      "value": "My WVD Host Pool"
+    },
+    "TenantAdminUpnOrApplicationId": {
+      "value": ""
+    },
+    "TenantAdminPassword": {
+      "value": ""
+    },
+    "isServicePrincipal": {
+      "value": false
+    },
+    "AadTenantId": {
+      "value": ""
     }
   }
 }

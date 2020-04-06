@@ -111,7 +111,7 @@ Write-Log -Message "Downloaded FSLogix"
 Expand-Archive "$WVDDeployBasePath\FSLogix_Apps.zip" -DestinationPath "$WVDDeployFslgxPath" -ErrorAction SilentlyContinue
 Remove-Item "$WVDDeployBasePath\FSLogix_Apps.zip"
 $AssetendDTM = (Get-Date)
-Write-Log -Message "Asset Download Time: $(($endDTM-$startDTM).totalseconds) seconds"
+Write-Log -Message "Asset Download Time: $(($AssetendDTM-$AssetstartDTM).totalseconds) seconds"
 
 # Checking if RDInfragent is registered or not in rdsh vm
 $CheckRegistry = Get-ItemProperty -Path "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\RDInfraAgent" -ErrorAction SilentlyContinue

@@ -15,11 +15,31 @@
 
 Parameter | Required | Description
 --- | --- | ---
-Admin Username | Yes | VM Local Admin Username
-Admin Password | Yes | VM Local Admin Password
-VM Base Name | Yes | 
-VM Host Size | Yes | 
-Number of Instances | Yes |
-Host Image Type | Yes | 
-OS | Yes |
-RDSH Is Windows Server | | 
+Location | Yes | Region resources will be deployed to, defaults to Resource Group location
+localadminUsername | Yes | Admin username for Host VMs
+localadminPassword | Yes | Admin password for Host VMs
+vmHostBaseName | Yes | Base VM name that will incrimented with -number for each instance
+vmHostSize | Yes | VM SKU size to be used for all Hosts created
+numberOfHosts | Yes | Number of VM Hosts to deploy
+HostImageType | Yes | Is the Host VM Image from the Azure Gallery or Custom Azure VM Image
+HostOS | Yes | OS Platform for the Host VM
+HostIsWindowsServer | Bool | If the VM is a Windows Server SKU (2016, 2019, etc.), enter true. If the VM is a Windows client SKU (Windows 10) enter false.
+CustomImageSourceName | Conditional | Name of the Azure VM Image to be used. Required if HostImageType is set to CustomImage
+CustomImageSourceResourceGroup | Conditional | Name of the Resource Group containing the custom Azure VM Image to be used. Required if HostImageType is set to CustomImage
+AVSFault | Yes | Fault Domains for the Availabilty Set
+AVSUpdate | Yes | Update Domains for the Availabilty Set
+existingVNetRG | Yes | Name of the of the Resource Group Containing the Virtual Network the Host will connect to
+existingVNetName | Yes | Name of the of the existing Virtual Network the Host will connect to
+existingSubnetName | Yes | Name of the of the existing Subnet the Host will connect to
+domainToJoin | Yes | The domain name that the Host VMs will join (mydomain.com or wvd.mydomain.com)
+domainUserFQDN | Yes | FQDN Username to be used to join Hosts to the specified domain
+domainPassword | Yes | Password for the account being used to join Hosts to the specified domain
+ouPath | Yes | Specifies an organizational unit (OU) where the Hosts will be placed in Active Directory
+domainJoinOptions | Yes | Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx
+ExistingTenantGroupName | Yes | The name of the tenant group in the WVD deployment
+ExistingTenantName | Yes | Name of the Existing WVD Tenant
+HostPoolName | Yes | Name of existing WVD Hostpool
+TenantAdminUpnOrApplicationId | Yes | The template will fail if you enter a user account that requires MFA or an application that is secured by a certificate. The UPN or ApplicationId must be an RDS Owner in the WVD Tenant to create the hostpool or an RDS Owner of the host pool to provision the host pool with additional VMs
+TenantAdminPassword | Yes | The password that corresponds to the tenant admin UPN or SPN
+isServicePrincipal | Bool | The boolean value indicating if the credentials are for a service principal
+AadTenantId | Yes | The Azure AAD Tenant ID GUID where the WVD is located

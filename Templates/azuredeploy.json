@@ -6,24 +6,24 @@
       "type": "string",
       "defaultValue": "[resourceGroup().location]"
     },
-    "adminUsername": {
+    "localadminUsername": {
       "type": "string",
       "metadata": {
-        "description": "Admin username for VMs"
+        "description": "Admin username for Host VMs"
       }
     },
-    "adminPassword": {
+    "localadminPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Admin password for VMs"
+        "description": "Admin password for Host VMs"
       }
     },
-    "vmNameBaseName": {
+    "vmHostBaseName": {
       "type": "string",
       "maxLength": 10,
       "minLength": 3,
       "metadata": {
-        "description": "Base VM that will concated/incrimented for resources"
+        "description": "Base VM name that will incrimented with -<number> for each instance"
       }
     },
     "vmHostSize": {
@@ -35,26 +35,31 @@
         "Standard_F16s_v2",
         "Standard_D1_v2",
         "Standard_D2s_v3"
-      ]
+      ],
+      "metadata": {
+        "description": "VM SKU size to be used for all Hosts created"
+      }
     },
-    "numberOfInstances": {
+    "numberOfHosts": {
       "type": "int",
       "defaultValue": 2,
       "minValue": 2,
-      "maxValue": 50,
+      "maxValue": 125,
       "metadata": {
-        "description": "Number of VMs to deploy, limit 5 since this sample is using a single storage account"
+        "description": "Number of VM Hosts to deploy"
       }
     },
-
     "HostImageType": {
       "type": "string",
       "allowedValues": [
         "Gallery",
         "CustomImage"
-      ]
+      ],
+      "metadata": {
+        "description": "Is the Host VM Image from the Azure Gallery or Custom Azure VM Image"
+      }
     },
-    "OS": {
+    "HostOS": {
       "type": "string",
       "defaultValue": "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus",
       "allowedValues": [
@@ -70,71 +75,83 @@
         "2016-Datacenter"
       ],
       "metadata": {
-        "description": "OS Platform for the VM"
+        "description": "OS Platform for the Host VM"
       }
     },
-    "rdshIsWindowsServer": {
+    "HostIsWindowsServer": {
       "type": "bool",
       "metadata": {
-        "description": "If the VM is a Windows Server SKU (2016, 2012R2, etc.), enter true. If the VM is a Windows client SKU (Windows 10, Windows 7, etc.)."
+        "description": "If the VM is a Windows Server SKU (2016, 2019, etc.), enter true. If the VM is a Windows client SKU (Windows 10) enter false."
       }
     },
     "CustomImageSourceName": {
       "type": "string",
-      "defaultValue": ""
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the Azure VM Image to be used. Required if HostImageType is set to CustomImage"
+      }
     },
     "CustomImageSourceResourceGroup": {
       "type": "string",
-      "defaultValue": ""
+      "defaultValue": "",
+      "metadata": {
+        "description": "Name of the Resource Group containing the custom Azure VM Image to be used. Required if HostImageType is set to CustomImage"
+      }
     },
     "AVSFault": {
       "type": "int",
-      "defaultValue": 2
+      "defaultValue": 2,
+      "metadata": {
+        "description": "Fault Domains for the Availabilty Set"
+      }
     },
     "AVSUpdate": {
       "type": "int",
-      "defaultValue": 5
+      "defaultValue": 5,
+      "metadata": {
+        "description": "Update Domains for the Availabilty Set"
+      }
     },
     "existingVnetRG": {
       "type": "string",
       "metadata": {
-        "description": "Name of Existing VNet Resource Group"
+        "description": "Name of the of the Resource Group Containing the Virtual Network the Host will connect to."
       }
     },
     "existingVnetName": {
       "type": "string",
       "metadata": {
-        "description": "Name of Existing VNet"
+        "description": "Name of the of the existing Virtual Network the Host will connect to."
       }
     },
     "existingSubnetName": {
       "type": "string",
       "metadata": {
-        "description": "Name of Existing Subnet"
+        "description": "Name of the of the existing Subnet the Host will connect to."
       }
     },
     "domainToJoin": {
       "type": "string",
       "metadata": {
-        "description": "The FQDN of the AD domain"
+        "description": "The domain name that the Host VMs will join (mydomain.com or wvd.mydomain.com)"
       }
     },
     "domainUserFQDN": {
       "type": "string",
       "metadata": {
-        "description": "Username of the account on the domain"
+        "description": "FQDN Username to be used to join Hosts to the specified domain"
       }
     },
     "domainPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "Password of the account on the domain"
+        "description": "Password for the account being used to join Hosts to the specified domain"
       }
     },
     "ouPath": {
       "type": "string",
       "metadata": {
-        "description": "Specifies an organizational unit (OU) for the domain account."
+        "description": "Specifies an organizational unit (OU) where the Hosts will be placed in Active Directory"
       }
     },
     "domainJoinOptions": {
@@ -146,7 +163,7 @@
     },
     "ExistingTenantGroupName": {
       "type": "string",
-      "defaultValue" :"Default Tenant Group",
+      "defaultValue": "Default Tenant Group",
       "metadata": {
         "description": "The name of the tenant group in the WVD deployment"
       }
@@ -172,7 +189,7 @@
     "TenantAdminPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "The password that corresponds to the tenant admin UPN."
+        "description": "The password that corresponds to the tenant admin UPN or SPN."
       }
     },
     "isServicePrincipal": {
@@ -183,24 +200,21 @@
       }
     },
     "AadTenantId": {
-      "type": "string"
-    },
-    "baseUrl": {
       "type": "string",
       "metadata": {
-        "description": "The base URL for Windows Virtual Desktop info"
-      },
-      "defaultValue": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master"
+        "description": "The Azure AAD Tenant ID GUID where the WVD is located."
+      }
     }
   },
   "variables": {
     "existingDomainUsername": "[first(split(parameters('domainUserFQDN'), '@'))]",
     "subnetRef": "[resourceId(parameters('existingVnetRG'),'Microsoft.Network/virtualNetworks/subnets',parameters('existingVnetName'),parameters('existingSubnetName'))]",
     "ImageSourceLower": "[toLower(parameters('HostImageType'))]",
-    "availabilitySetName": "[concat(parameters('vmNameBaseName'),'-avs')]",
+    "availabilitySetName": "[concat(parameters('vmHostBaseName'),'-avs')]",
     "HostPoolFriendlyName": "Hostpool",
     "HostPoolDescription": "Created through ARM template",
     "RegistrationExpirationHours": "48",
+    "baseUrl":"https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master",
     "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Script.ps1",
     "RDBrokerURL": "https://rdbroker.wvd.microsoft.com",
     "galleryImage": {
@@ -269,7 +283,7 @@
       "customimage": {
         "id": "[resourceId(parameters('CustomImageSourceResourceGroup'), 'Microsoft.Compute/images', parameters('CustomImageSourceName'))]"
       },
-      "gallery": "[variables('galleryimage')[parameters('OS')]]"
+      "gallery": "[variables('galleryimage')[parameters('HostOS')]]"
     }
   },
   "functions": [
@@ -313,7 +327,7 @@
     },
     {
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(parameters('vmNameBaseName'),'-nic-', copyindex())]",
+      "name": "[concat(parameters('vmHostBaseName'),'-nic-', copyindex())]",
       "apiVersion": "2019-11-01",
       "location": "[parameters('location')]",
       "dependsOn": [
@@ -321,7 +335,7 @@
       ],
       "copy": {
         "name": "host-nicLoop",
-        "count": "[parameters('numberOfInstances')]"
+        "count": "[parameters('numberOfHosts')]"
       },
       "properties": {
         "ipConfigurations": [
@@ -339,12 +353,12 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
+      "name": "[concat(parameters('vmHostBaseName'),'-', copyIndex())]",
       "apiVersion": "2019-07-01",
       "location": "[parameters('location')]",
       "copy": {
         "name": "host-vmLoop",
-        "count": "[parameters('numberOfInstances')]"
+        "count": "[parameters('numberOfHosts')]"
       },
       "dependsOn": [
         "host-nicLoop"
@@ -357,21 +371,21 @@
           "vmSize": "[parameters('VMHostSize')]"
         },
         "osProfile": {
-          "computerName": "[concat(parameters('vmNameBaseName'),'-', copyIndex())]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "computerName": "[concat(parameters('vmHostBaseName'),'-', copyIndex())]",
+          "adminUsername": "[parameters('localadminUsername')]",
+          "adminPassword": "[parameters('localadminPassword')]"
         },
         "storageProfile": {
           "imageReference": "[if(equals(variables('ImageSourceLower'), 'customimage'), main.getVMImageReferenceCustomVHD(parameters('CustomImageSourceName'),parameters('CustomImageSourceResourceGroup')), variables('VMImageReference')[variables('ImageSourceLower')])]",
           "osDisk": {
             "createOption": "FromImage",
-            "name": "[concat(parameters('vmNameBaseName'),'-', copyIndex(),'-osdisk')]"
+            "name": "[concat(parameters('vmHostBaseName'),'-', copyIndex(),'-osdisk')]"
           }
         },
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmNameBaseName'),'-nic-', copyindex()))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmHostBaseName'),'-nic-', copyindex()))]"
             }
           ]
         }
@@ -380,15 +394,15 @@
     {
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'joindomain')]",
-      "condition": "[not(parameters('rdshIsWindowsServer'))]",
+      "name": "[concat(parameters('vmHostBaseName'),'-', copyindex(),'/', 'joindomain')]",
+      "condition": "[not(parameters('HostIsWindowsServer'))]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "host-vmLoop"
       ],
       "copy": {
         "name": "rdsh-domain-join-loop",
-        "count": "[parameters('numberOfInstances')]"
+        "count": "[parameters('numberOfHosts')]"
       },
       "properties": {
         "publisher": "Microsoft.Compute",
@@ -410,15 +424,15 @@
     {
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/', 'dscextension')]",
+      "name": "[concat(parameters('vmHostBaseName'),'-', copyindex(),'/', 'dscextension')]",
       "location": "[parameters('location')]",
-      "condition": "[parameters('rdshIsWindowsServer')]",
+      "condition": "[parameters('HostIsWindowsServer')]",
       "dependsOn": [
         "host-vmLoop"
       ],
       "copy": {
         "name": "rdsh-dsc-loop",
-        "count": "[parameters('numberOfInstances')]"
+        "count": "[parameters('numberOfHosts')]"
       },
       "properties": {
         "publisher": "Microsoft.Powershell",
@@ -426,7 +440,7 @@
         "typeHandlerVersion": "2.11",
         "autoUpgradeMinorVersion": true,
         "settings": {
-          "ModulesUrl": "[concat(parameters('baseUrl'),'/DSC/Configuration.zip')]",
+          "ModulesUrl": "[concat(variables('baseUrl'),'/DSC/Configuration.zip')]",
           "ConfigurationFunction": "Configuration.ps1\\SessionHost",
           "Properties": {
             "DomainName": "[parameters('domainToJoin')]",
@@ -446,7 +460,7 @@
     {
       "apiVersion": "2019-07-01",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('vmNameBaseName'),'-', copyindex(),'/','rdAgent')]",
+      "name": "[concat(parameters('vmHostBaseName'),'-', copyindex(),'/','rdAgent')]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "rdsh-domain-join-loop",
@@ -454,7 +468,7 @@
       ],
       "copy": {
         "name": "rdsh-enable-loop",
-        "count": "[parameters('numberOfInstances')]"
+        "count": "[parameters('numberOfHosts')]"
       },
       "tags": {
         "displayName": "script"
