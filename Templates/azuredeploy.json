@@ -6,13 +6,13 @@
       "type": "string",
       "defaultValue": "[resourceGroup().location]"
     },
-    "localadminUsername": {
+    "localAdminUsername": {
       "type": "string",
       "metadata": {
         "description": "Admin username for Host VMs"
       }
     },
-    "localadminPassword": {
+    "localAdminPassword": {
       "type": "securestring",
       "metadata": {
         "description": "Admin password for Host VMs"
@@ -372,8 +372,8 @@
         },
         "osProfile": {
           "computerName": "[concat(parameters('vmHostBaseName'),'-', copyIndex())]",
-          "adminUsername": "[parameters('localadminUsername')]",
-          "adminPassword": "[parameters('localadminPassword')]"
+          "adminUsername": "[parameters('localAdminUsername')]",
+          "adminPassword": "[parameters('localAdminPassword')]"
         },
         "storageProfile": {
           "imageReference": "[if(equals(variables('ImageSourceLower'), 'customimage'), main.getVMImageReferenceCustomVHD(parameters('CustomImageSourceName'),parameters('CustomImageSourceResourceGroup')), variables('VMImageReference')[variables('ImageSourceLower')])]",
