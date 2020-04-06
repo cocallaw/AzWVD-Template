@@ -204,13 +204,6 @@
       "metadata": {
         "description": "The Azure AAD Tenant ID GUID where the WVD is located."
       }
-    },
-    "baseUrl": {
-      "type": "string",
-      "metadata": {
-        "description": "The base URL for Windows Virtual Desktop info"
-      },
-      "defaultValue": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master"
     }
   },
   "variables": {
@@ -221,6 +214,7 @@
     "HostPoolFriendlyName": "Hostpool",
     "HostPoolDescription": "Created through ARM template",
     "RegistrationExpirationHours": "48",
+    "baseUrl":"https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master",
     "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Script.ps1",
     "RDBrokerURL": "https://rdbroker.wvd.microsoft.com",
     "galleryImage": {
@@ -446,7 +440,7 @@
         "typeHandlerVersion": "2.11",
         "autoUpgradeMinorVersion": true,
         "settings": {
-          "ModulesUrl": "[concat(parameters('baseUrl'),'/DSC/Configuration.zip')]",
+          "ModulesUrl": "[concat(variables('baseUrl'),'/DSC/Configuration.zip')]",
           "ConfigurationFunction": "Configuration.ps1\\SessionHost",
           "Properties": {
             "DomainName": "[parameters('domainToJoin')]",

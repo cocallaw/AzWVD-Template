@@ -85,9 +85,6 @@
     },
     "AadTenantId": {
       "value": ""
-    },
-    "baseUrl": {
-      "value": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master"
     }
   }
 }
