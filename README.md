@@ -13,20 +13,25 @@
 ## Template Description
 This template will create WVD Host VMs using the specified source image, then prepare and join them to the specified WVD Host pool.
 
+### Prerequisites 
+
 The following items are required to already exist for the template to deploy sucessfully 
 
 * Azure Virtual Network and Subnet in the same region and subscription
 * Windows AD Domain and AD user capable of joining machines to the domain
 * Network connectivity from the subnet being used to the AD infrastructure
-* Azure WVD Tenant and Host Pool ([Script.ps1](https://github.com/cocallaw/AzWVD-Template/blob/master/Scripts/WVD/Script.ps1) will create Host Pool if it does not exist in Tenant given)
+* Azure WVD Tenant and Host Pool ([Setup-WVDHost.ps1](https://github.com/cocallaw/AzWVD-Template/blob/master/Scripts/WVD/Setup-WVDHost.ps1) will create Host Pool if it does not exist in Tenant given)
 * Azure WVD Tenant Admin User or SPN credentials 
 
-This template utilizes the Azure VM Custom Script Extension to run [Script.ps1](https://github.com/cocallaw/AzWVD-Template/blob/master/Scripts/WVD/Script.ps1), which performs the WVD specific prep, and joining to the specified Host Pool. The script uses public URLs to download and install the most recent version of following items-
+### Host Configuration
+
+This template utilizes the Azure VM Custom Script Extension to run [Setup-WVDHost.ps1](https://github.com/cocallaw/AzWVD-Template/blob/master/Scripts/WVD/Setup-WVDHost.ps1), which performs the WVD specific prep, and joining to the specified Host Pool. The script uses public URLs to download and install the most recent version of following items-
 
 * Microsoft.RDInfra.RDAgentBootLoader.Installer-x64.msi
 * Microsoft.RDInfra.RDAgent.Installer-x64.msi
 * FSLogixAppsSetup.exe
 
+The standalone Setup-WVDHost.ps1 can be found in the [cocallaw/AzWVD-PSScript](https://github.com/cocallaw/AzWVD-PSScript) repo to be used for configuing single instance Hosts locally or incorporating into other WVD workflows 
 
 ## Template Parameters
 
