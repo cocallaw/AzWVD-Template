@@ -31,7 +31,7 @@
       "metadata": {
         "description": "VM SKU size to be used for all Hosts created eg. Standard_F4s_v2 or Standard_NV6s_v2"
       },
-      "defaultValue" : "Standard_F4s_v2"
+      "defaultValue": "Standard_F4s_v2"
     },
     "numberOfHosts": {
       "type": "int",
@@ -207,8 +207,8 @@
     "HostPoolFriendlyName": "Hostpool",
     "HostPoolDescription": "Created through ARM template",
     "RegistrationExpirationHours": "48",
-    "baseUrl":"https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master",
-    "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Script.ps1",
+    "baseUrl": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master",
+    "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Setup-WVDHost.ps1",
     "RDBrokerURL": "https://rdbroker.wvd.microsoft.com",
     "galleryImage": {
       "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus": {
@@ -477,7 +477,7 @@
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File Script.ps1',' -RDBrokerURL \"', variables('RDBrokerURL'), '\"', ' ', ' -definedTenantGroupName \"', parameters('ExistingTenantGroupName'), '\"',' ',' -TenantName \"', parameters('ExistingTenantName'), '\"',' ', ' -HostPoolName \"', parameters('HostPoolName'), '\"',' ', ' -FriendlyName \"', variables('HostPoolFriendlyName'), '\"',' ', ' -Description \"', variables('HostPoolDescription'), '\"',' ', ' -Hours \"', variables('RegistrationExpirationHours'), '\"',' ', ' -TenantAdminUPN \"', parameters('TenantAdminUpnOrApplicationId'), '\"',' ', ' -TenantAdminPassword \"', parameters('TenantAdminPassword'), '\"',' ',' -localAdminUsername \"', variables('existingDomainUsername'), '\"',' ', ' -localAdminpassword \"', parameters('domainPassword'), '\"', ' ', ' -isServicePrincipal \"', parameters('isServicePrincipal'), '\"', ' ', ' -AadTenantId \"', parameters('AadTenantId'), '\"')]"
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File Setup-WVDHost.ps1',' -RDBrokerURL \"', variables('RDBrokerURL'), '\"', ' ', ' -definedTenantGroupName \"', parameters('ExistingTenantGroupName'), '\"',' ',' -TenantName \"', parameters('ExistingTenantName'), '\"',' ', ' -HostPoolName \"', parameters('HostPoolName'), '\"',' ', ' -FriendlyName \"', variables('HostPoolFriendlyName'), '\"',' ', ' -Description \"', variables('HostPoolDescription'), '\"',' ', ' -Hours \"', variables('RegistrationExpirationHours'), '\"',' ', ' -TenantAdminUPN \"', parameters('TenantAdminUpnOrApplicationId'), '\"',' ', ' -TenantAdminPassword \"', parameters('TenantAdminPassword'), '\"',' ',' -localAdminUsername \"', variables('existingDomainUsername'), '\"',' ', ' -localAdminpassword \"', parameters('domainPassword'), '\"', ' ', ' -isServicePrincipal \"', parameters('isServicePrincipal'), '\"', ' ', ' -AadTenantId \"', parameters('AadTenantId'), '\"')]"
         }
       }
     }
