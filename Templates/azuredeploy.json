@@ -46,7 +46,8 @@
       "type": "string",
       "allowedValues": [
         "Gallery",
-        "CustomImage"
+        "CustomImage",
+        "AzureImageGallery"
       ],
       "metadata": {
         "description": "Is the Host VM Image from the Azure Gallery or Custom Azure VM Image"
@@ -89,6 +90,13 @@
       "defaultValue": "",
       "metadata": {
         "description": "Name of the Resource Group containing the custom Azure VM Image to be used. Required if HostImageType is set to CustomImage"
+      }
+    },
+    "AzureImageGalleryImageID": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Azure Image Gallery Image ID"
       }
     },
     "AVSFault": {
@@ -210,6 +218,17 @@
     "baseUrl": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master",
     "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Setup-WVDHost.ps1",
     "RDBrokerURL": "https://rdbroker.wvd.microsoft.com",
+    "imageSelector": {
+      "gallery": {
+        "imageReference": "[variables('galleryimage')[parameters('HostOS')]]"
+      },
+      "customimage": {
+        "imageReference": "[resourceId(parameters('CustomImageSourceResourceGroup'), 'Microsoft.Compute/images', parameters('CustomImageSourceName'))]"
+      },
+      "azureimagegallery": {
+        "imageReference": "[parameters('AzureImageGalleryImageID')]"
+      }
+    },
     "galleryImage": {
       "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus": {
         "publisher": "MicrosoftWindowsDesktop",
