@@ -388,7 +388,7 @@
           "adminPassword": "[parameters('localAdminPassword')]"
         },
         "storageProfile": {
-          "imageReference": "[if(equals(variables('ImageSourceLower'), 'customimage'), main.getVMImageReferenceCustomVHD(parameters('CustomImageSourceName'),parameters('CustomImageSourceResourceGroup')), variables('VMImageReference')[variables('ImageSourceLower')])]",
+          "imageReference": "[variables('imageSelector')[variables('ImageSourceLower')]]",
           "osDisk": {
             "createOption": "FromImage",
             "name": "[concat(parameters('vmHostBaseName'),'-', copyIndex(),'-osdisk')]"
