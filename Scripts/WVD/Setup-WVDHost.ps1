@@ -40,12 +40,6 @@ param(
     [Parameter(mandatory = $true)]
     [string]$TenantAdminPassword,
 
-    [Parameter(mandatory = $true)]
-    [string]$localAdminUserName,
-
-    [Parameter(mandatory = $true)]
-    [string]$localAdminPassword,
-
     [Parameter(mandatory = $false)]
     [string]$isServicePrincipal = "False",
 
@@ -143,8 +137,6 @@ if (!$CheckRegistry) {
     #Build Credential Variables
     $Securepass = ConvertTo-SecureString -String $TenantAdminPassword -AsPlainText -Force
     $Credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($TenantAdminUPN, $Securepass)
-    $AdminSecurepass = ConvertTo-SecureString -String $localAdminPassword -AsPlainText -Force
-    $adminCredentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($localAdminUserName, $AdminSecurepass)
 
     # Getting fqdn of rdsh vm
     $SessionHostName = (Get-WmiObject win32_computersystem).DNSHostName + "." + (Get-WmiObject win32_computersystem).Domain

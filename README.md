@@ -48,6 +48,9 @@ HostOS | Yes | OS Platform for the Host VM
 HostIsWindowsServer | Bool | If the VM is a Windows Server SKU (2016, 2019, etc.), enter true. If the VM is a Windows client SKU (Windows 10) enter false.
 CustomImageSourceName | Conditional | Name of the Azure VM Image to be used. Required if HostImageType is set to CustomImage
 CustomImageSourceResourceGroup | Conditional | Name of the Resource Group containing the custom Azure VM Image to be used. Required if HostImageType is set to CustomImage
+galleryName | Conditional | Name of the Shared Image Gallery. Required if HostImageType is set to AzureImageGallery
+galleryImageDefinitionName | Conditional | Name of the Image Definition. Required if HostImageType is set to AzureImageGallery
+galleryImageVersionName | Conditional | Name of the Image Version - should follow `<MajorVersion>.<MinorVersion>.<Patch>`. Required if HostImageType is set to AzureImageGallery
 AVSFault | Yes | Fault Domains for the Availabilty Set
 AVSUpdate | Yes | Update Domains for the Availabilty Set
 existingVNetRG | Yes | Name of the of the Resource Group Containing the Virtual Network the Host will connect to
@@ -57,7 +60,7 @@ domainToJoin | Yes | The domain name that the Host VMs will join (mydomain.com o
 domainUserFQDN | Yes | FQDN Username to be used to join Hosts to the specified domain
 domainPassword | Yes | Password for the account being used to join Hosts to the specified domain
 ouPath | Yes | Specifies an organizational unit (OU) where the Hosts will be placed in Active Directory
-domainJoinOptions | Yes | Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx
+domainJoinOptions | Yes | Set of bit flags that define the join options. Default value of 3 is a combination of `NETSETUP_JOIN_DOMAIN (0x00000001)` & `NETSETUP_ACCT_CREATE (0x00000002)` i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx
 ExistingTenantGroupName | Yes | The name of the tenant group in the WVD deployment
 ExistingTenantName | Yes | Name of the Existing WVD Tenant
 HostPoolName | Yes | Name of existing WVD Hostpool

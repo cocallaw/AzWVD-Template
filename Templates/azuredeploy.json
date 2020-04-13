@@ -46,7 +46,8 @@
       "type": "string",
       "allowedValues": [
         "Gallery",
-        "CustomImage"
+        "CustomImage",
+        "AzureImageGallery"
       ],
       "metadata": {
         "description": "Is the Host VM Image from the Azure Gallery or Custom Azure VM Image"
@@ -89,6 +90,24 @@
       "defaultValue": "",
       "metadata": {
         "description": "Name of the Resource Group containing the custom Azure VM Image to be used. Required if HostImageType is set to CustomImage"
+      }
+    },
+    "galleryName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Shared Image Gallery."
+      }
+    },
+    "galleryImageDefinitionName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Image Definition."
+      }
+    },
+    "galleryImageVersionName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Image Version - should follow <MajorVersion>.<MinorVersion>.<Patch>."
       }
     },
     "AVSFault": {
@@ -210,6 +229,15 @@
     "baseUrl": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master",
     "wvdsrvscriptURI": "https://raw.githubusercontent.com/cocallaw/AzWVD-Template/master/Scripts/WVD/Setup-WVDHost.ps1",
     "RDBrokerURL": "https://rdbroker.wvd.microsoft.com",
+    "imageSelector": {
+      "gallery": "[variables('galleryimage')[parameters('HostOS')]]",
+      "customimage": {
+        "id": "[resourceId(parameters('CustomImageSourceResourceGroup'), 'Microsoft.Compute/images', parameters('CustomImageSourceName'))]"
+      },
+      "azureimagegallery": {
+        "id": "[resourceId('Microsoft.Compute/galleries/images/versions', parameters('galleryName'), parameters('galleryImageDefinitionName'), parameters('galleryImageVersionName'))]"
+      }
+    },
     "galleryImage": {
       "Windows-10-Enterprise-multi-session-with-Office-365-ProPlus": {
         "publisher": "MicrosoftWindowsDesktop",
@@ -271,39 +299,8 @@
         "sku": "2016-Datacenter",
         "version": "latest"
       }
-    },
-    "VMImageReference": {
-      "customimage": {
-        "id": "[resourceId(parameters('CustomImageSourceResourceGroup'), 'Microsoft.Compute/images', parameters('CustomImageSourceName'))]"
-      },
-      "gallery": "[variables('galleryimage')[parameters('HostOS')]]"
     }
   },
-  "functions": [
-    {
-      "namespace": "main",
-      "members": {
-        "getVMImageReferenceCustomVHD": {
-          "parameters": [
-            {
-              "name": "imageName",
-              "type": "string"
-            },
-            {
-              "name": "imageRG",
-              "type": "string"
-            }
-          ],
-          "output": {
-            "type": "object",
-            "value": {
-              "id": "[resourceId(parameters('imageRG'), 'Microsoft.Compute/images', parameters('imageName'))]"
-            }
-          }
-        }
-      }
-    }
-  ],
   "resources": [
     {
       "type": "Microsoft.Compute/availabilitySets",
@@ -369,7 +366,7 @@
           "adminPassword": "[parameters('localAdminPassword')]"
         },
         "storageProfile": {
-          "imageReference": "[if(equals(variables('ImageSourceLower'), 'customimage'), main.getVMImageReferenceCustomVHD(parameters('CustomImageSourceName'),parameters('CustomImageSourceResourceGroup')), variables('VMImageReference')[variables('ImageSourceLower')])]",
+          "imageReference": "[variables('imageSelector')[variables('ImageSourceLower')]]",
           "osDisk": {
             "createOption": "FromImage",
             "name": "[concat(parameters('vmHostBaseName'),'-', copyIndex(),'-osdisk')]"
@@ -477,7 +474,7 @@
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File Setup-WVDHost.ps1',' -RDBrokerURL \"', variables('RDBrokerURL'), '\"', ' ', ' -definedTenantGroupName \"', parameters('ExistingTenantGroupName'), '\"',' ',' -TenantName \"', parameters('ExistingTenantName'), '\"',' ', ' -HostPoolName \"', parameters('HostPoolName'), '\"',' ', ' -FriendlyName \"', variables('HostPoolFriendlyName'), '\"',' ', ' -Description \"', variables('HostPoolDescription'), '\"',' ', ' -Hours \"', variables('RegistrationExpirationHours'), '\"',' ', ' -TenantAdminUPN \"', parameters('TenantAdminUpnOrApplicationId'), '\"',' ', ' -TenantAdminPassword \"', parameters('TenantAdminPassword'), '\"',' ',' -localAdminUsername \"', variables('existingDomainUsername'), '\"',' ', ' -localAdminpassword \"', parameters('domainPassword'), '\"', ' ', ' -isServicePrincipal \"', parameters('isServicePrincipal'), '\"', ' ', ' -AadTenantId \"', parameters('AadTenantId'), '\"')]"
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File Setup-WVDHost.ps1',' -RDBrokerURL \"', variables('RDBrokerURL'), '\"', ' ', ' -definedTenantGroupName \"', parameters('ExistingTenantGroupName'), '\"',' ',' -TenantName \"', parameters('ExistingTenantName'), '\"',' ', ' -HostPoolName \"', parameters('HostPoolName'), '\"',' ', ' -FriendlyName \"', variables('HostPoolFriendlyName'), '\"',' ', ' -Description \"', variables('HostPoolDescription'), '\"',' ', ' -Hours \"', variables('RegistrationExpirationHours'), '\"',' ', ' -TenantAdminUPN \"', parameters('TenantAdminUpnOrApplicationId'), '\"',' ', ' -TenantAdminPassword \"', parameters('TenantAdminPassword'), '\"',' ', ' -isServicePrincipal \"', parameters('isServicePrincipal'), '\"', ' ', ' -AadTenantId \"', parameters('AadTenantId'), '\"')]"
         }
       }
     }
