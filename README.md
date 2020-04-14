@@ -33,7 +33,7 @@ This template utilizes the Azure VM Custom Script Extension to run [Setup-WVDHos
 * Microsoft.RDInfra.RDAgent.Installer-x64.msi
 * FSLogixAppsSetup.exe
 
-The standalone Setup-WVDHost.ps1 can be found in the [cocallaw/AzWVD-PSScript](https://github.com/cocallaw/AzWVD-PSScript) repo to be used for configuing single instance Hosts locally or incorporating into other WVD workflows 
+The standalone Setup-WVDHost.ps1 can be found in the [cocallaw/AzWVD-PSScript](https://github.com/cocallaw/AzWVD-PSScript) repo, and can be used for configuring a VM locally or incorporating into other WVD workflows 
 
 ## Template Parameters
 
