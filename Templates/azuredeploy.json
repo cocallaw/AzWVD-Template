@@ -94,18 +94,21 @@
     },
     "galleryName": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
         "description": "Name of the Shared Image Gallery."
       }
     },
     "galleryImageDefinitionName": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
         "description": "Name of the Image Definition."
       }
     },
     "galleryImageVersionName": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
         "description": "Name of the Image Version - should follow <MajorVersion>.<MinorVersion>.<Patch>."
       }
@@ -332,6 +335,7 @@
   "resources": [
     {
       "type": "Microsoft.Compute/availabilitySets",
+      "condition": "[parameters('createAvailabilitySet')]",
       "name": "[variables('availabilitySetName')]",
       "apiVersion": "2018-06-01",
       "location": "[parameters('location')]",
