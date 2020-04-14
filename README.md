@@ -53,8 +53,9 @@ CustomImageSourceResourceGroup | Conditional | Name of the Resource Group contai
 galleryName | Conditional | Name of the Shared Image Gallery. Required if HostImageType is set to AzureImageGallery
 galleryImageDefinitionName | Conditional | Name of the Image Definition. Required if HostImageType is set to AzureImageGallery
 galleryImageVersionName | Conditional | Name of the Image Version - should follow `<MajorVersion>.<MinorVersion>.<Patch>`. Required if HostImageType is set to AzureImageGallery
-AVSFault | Yes | Fault Domains for the Availabilty Set
-AVSUpdate | Yes | Update Domains for the Availabilty Set
+createAvailabilitySet | Bool | If set to True template will create Availability Set for all Host VMs deployed. Using an Availability set limits you to a maximum of 200 virtual machines For more info: https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#virtual-machines-limits---azure-resource-manager."
+AVSFault | Conditional | Fault Domains for the Availabilty Set. Required if createAvailabilitySet set to True
+AVSUpdate | Conditional | Update Domains for the Availabilty Set. Required if createAvailabilitySet set to True
 existingVNetRG | Yes | Name of the of the Resource Group Containing the Virtual Network the Host will connect to
 existingVNetName | Yes | Name of the of the existing Virtual Network the Host will connect to
 existingSubnetName | Yes | Name of the of the existing Subnet the Host will connect to

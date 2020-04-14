@@ -94,21 +94,31 @@
     },
     "galleryName": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
         "description": "Name of the Shared Image Gallery."
       }
     },
     "galleryImageDefinitionName": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
         "description": "Name of the Image Definition."
       }
     },
     "galleryImageVersionName": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
         "description": "Name of the Image Version - should follow <MajorVersion>.<MinorVersion>.<Patch>."
       }
+    },
+    "createAvailabilitySet": {
+      "type": "bool",
+      "metadata": {
+        "description": "Set this parameter to true if you would like to create Availability set. Defaults to true. Using an Availability set limits you to a maximum of 200 virtual machines For more info: https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#virtual-machines-limits---azure-resource-manager."
+      },
+      "defaultValue": true
     },
     "AVSFault": {
       "type": "int",
@@ -301,9 +311,31 @@
       }
     }
   },
+  "functions": [
+        {
+            "namespace": "main",
+            "members": {
+                "getAVSID": {
+                    "parameters": [
+                        {
+                            "name": "AVSName",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "object",
+                        "value": {
+                            "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('AVSName'))]"
+                        }
+                    }
+                }
+            }
+        }
+    ],
   "resources": [
     {
       "type": "Microsoft.Compute/availabilitySets",
+      "condition": "[parameters('createAvailabilitySet')]",
       "name": "[variables('availabilitySetName')]",
       "apiVersion": "2018-06-01",
       "location": "[parameters('location')]",
@@ -354,9 +386,7 @@
         "host-nicLoop"
       ],
       "properties": {
-        "availabilitySet": {
-          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
-        },
+        "availabilitySet": "[if(parameters('createAvailabilitySet'), main.getAVSID(variables('availabilitySetName')), json('null'))]",
         "hardwareProfile": {
           "vmSize": "[parameters('VMHostSize')]"
         },
