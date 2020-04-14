@@ -35,6 +35,18 @@
     "CustomImageSourceResourceGroup": {
       "value": "myImageRG"
     },
+    "galleryName": {
+      "value": ""
+    },
+    "galleryImageDefinitionName": {
+      "value": ""
+    },
+    "galleryImageVersionName": {
+      "value": ""
+    },
+    "createAvailabilitySet": {
+      "value": true
+    },
     "AVSFault": {
       "value": 2
     },
